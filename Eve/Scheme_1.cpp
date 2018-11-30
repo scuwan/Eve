@@ -637,7 +637,7 @@ int Scheme_1::return_drones_to_bay(int s)
 				DELAY_N_SECONDS_RETURN(1, s);
 				l_click(pt1);
 				DELAY_N_SECONDS_RETURN(1, s);
-				format_out_put(QString::fromLocal8Bit("无人机在空间中."));
+				//format_out_put(QString::fromLocal8Bit("无人机在空间中."));
 			}
 			else
 			{

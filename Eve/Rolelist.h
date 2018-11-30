@@ -6,6 +6,7 @@
 #include <QDomDocument>
 #include <QVector>
 #include <QString>
+#include <QStringList>
 
 class Rolelist : public QWidget
 {
@@ -14,6 +15,7 @@ class Rolelist : public QWidget
 public:
 	Rolelist(QWidget *parent = Q_NULLPTR);
 	~Rolelist();
+	QStringList Roles();
 signals:
 	void launchRole(QString role,QString scheme);
 	void pauseRole(QString role);

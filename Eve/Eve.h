@@ -1,17 +1,19 @@
 #pragma once
 
 #include <QtWidgets/QWidget>
+#include <QMainwindow>
 #include <QThread>
+#include <QDockWidget>
 #include "ui_Eve.h"
 #include "OutputInfo.h"
 #include "Rolelist.h"
 #include "IScheme.h"
-class Eve : public QWidget
+class Eve : public QMainWindow
 {
 	Q_OBJECT
 
 public:
-	Eve(QWidget *parent = Q_NULLPTR);
+	Eve(QMainWindow *parent = Q_NULLPTR);
 	~Eve();
 private slots:
 	void launchRole(QString role, QString scheme);
@@ -24,11 +26,12 @@ private slots:
 private:
 	bool is_role_launched(QString role);
 	int role_index(QString role);
+	int role_index_of_info(QString role);
 
 private:
-	Ui::EveClass ui;
+	Ui::MainWindow ui;
 	Rolelist *rolesui;
-	OutputInfo *outputui;
+	OutputInfo *cmdinfoui;
 	struct RoleRuntime
 	{
 		RoleRuntime()
@@ -55,4 +58,11 @@ private:
 		QString role;
 	};
 	QVector<RoleRuntime> m_runtime;
+	struct RoleInfoWindow
+	{
+		QString role;
+		QDockWidget* m_roleinfodock = nullptr;
+		OutputInfo* m_roleinfoui =nullptr;
+	};
+	QVector<RoleInfoWindow> m_roleinfodocks;
 };

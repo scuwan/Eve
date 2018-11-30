@@ -30,36 +30,7 @@
     <number>0</number>
    </property>
    <item row="0" column="0">
-    <widget class="QDockWidget" name="dockWidget">
-     <property name="features">
-      <set>QDockWidget::AllDockWidgetFeatures</set>
-     </property>
-     <property name="windowTitle">
-      <string>用户操作指令</string>
-     </property>
-     <widget class="QWidget" name="dockWidgetContents">
-      <layout class="QVBoxLayout" name="verticalLayout">
-       <property name="spacing">
-        <number>0</number>
-       </property>
-       <property name="leftMargin">
-        <number>0</number>
-       </property>
-       <property name="topMargin">
-        <number>0</number>
-       </property>
-       <property name="rightMargin">
-        <number>0</number>
-       </property>
-       <property name="bottomMargin">
-        <number>0</number>
-       </property>
-       <item>
-        <widget class="QTextEdit" name="textEdit"/>
-       </item>
-      </layout>
-     </widget>
-    </widget>
+    <widget class="QTextEdit" name="textEdit"/>
    </item>
   </layout>
  </widget>

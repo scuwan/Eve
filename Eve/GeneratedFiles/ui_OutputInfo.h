@@ -13,11 +13,9 @@
 #include <QtWidgets/QAction>
 #include <QtWidgets/QApplication>
 #include <QtWidgets/QButtonGroup>
-#include <QtWidgets/QDockWidget>
 #include <QtWidgets/QGridLayout>
 #include <QtWidgets/QHeaderView>
 #include <QtWidgets/QTextEdit>
-#include <QtWidgets/QVBoxLayout>
 #include <QtWidgets/QWidget>
 
 QT_BEGIN_NAMESPACE
@@ -26,9 +24,6 @@ class Ui_OutputInfo
 {
 public:
     QGridLayout *gridLayout;
-    QDockWidget *dockWidget;
-    QWidget *dockWidgetContents;
-    QVBoxLayout *verticalLayout;
     QTextEdit *textEdit;
 
     void setupUi(QWidget *OutputInfo)
@@ -41,23 +36,10 @@ public:
         gridLayout->setContentsMargins(11, 11, 11, 11);
         gridLayout->setObjectName(QStringLiteral("gridLayout"));
         gridLayout->setContentsMargins(0, 0, 0, 0);
-        dockWidget = new QDockWidget(OutputInfo);
-        dockWidget->setObjectName(QStringLiteral("dockWidget"));
-        dockWidgetContents = new QWidget();
-        dockWidgetContents->setObjectName(QStringLiteral("dockWidgetContents"));
-        verticalLayout = new QVBoxLayout(dockWidgetContents);
-        verticalLayout->setSpacing(0);
-        verticalLayout->setContentsMargins(11, 11, 11, 11);
-        verticalLayout->setObjectName(QStringLiteral("verticalLayout"));
-        verticalLayout->setContentsMargins(0, 0, 0, 0);
-        textEdit = new QTextEdit(dockWidgetContents);
+        textEdit = new QTextEdit(OutputInfo);
         textEdit->setObjectName(QStringLiteral("textEdit"));
 
-        verticalLayout->addWidget(textEdit);
-
-        dockWidget->setWidget(dockWidgetContents);
-
-        gridLayout->addWidget(dockWidget, 0, 0, 1, 1);
+        gridLayout->addWidget(textEdit, 0, 0, 1, 1);
 
 
         retranslateUi(OutputInfo);

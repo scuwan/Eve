@@ -15,6 +15,16 @@ Rolelist::~Rolelist()
 {
 }
 
+QStringList Rolelist::Roles()
+{
+	QStringList s;
+	for (int i = 0; i < m_roles.size(); ++i)
+	{
+		s.append(m_roles[i].role);
+	}
+	return s;
+}
+
 void Rolelist::setThreadId(QString role,int id)
 {
 	int rows = ui.tableWidget->rowCount();

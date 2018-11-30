@@ -20,7 +20,12 @@ void OutputInfo::Monitor(IScheme *scheme)
 	}
 }
 
-void OutputInfo::print_info(QString & info)
+void OutputInfo::StandOut(const QString & info)
+{
+	print_info(info);
+}
+
+void OutputInfo::print_info(const QString & info)
 {
 	QString msg = "> ";
 	ui.textEdit->append(msg.append(info));

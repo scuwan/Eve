@@ -14,34 +14,50 @@
 #include <QtWidgets/QApplication>
 #include <QtWidgets/QButtonGroup>
 #include <QtWidgets/QHeaderView>
+#include <QtWidgets/QMainWindow>
+#include <QtWidgets/QMenuBar>
+#include <QtWidgets/QStatusBar>
 #include <QtWidgets/QWidget>
 
 QT_BEGIN_NAMESPACE
 
-class Ui_EveClass
+class Ui_MainWindow
 {
 public:
+    QWidget *centralwidget;
+    QMenuBar *menubar;
+    QStatusBar *statusbar;
 
-    void setupUi(QWidget *EveClass)
+    void setupUi(QMainWindow *MainWindow)
     {
-        if (EveClass->objectName().isEmpty())
-            EveClass->setObjectName(QStringLiteral("EveClass"));
-        EveClass->resize(1253, 786);
+        if (MainWindow->objectName().isEmpty())
+            MainWindow->setObjectName(QStringLiteral("MainWindow"));
+        MainWindow->resize(800, 531);
+        centralwidget = new QWidget(MainWindow);
+        centralwidget->setObjectName(QStringLiteral("centralwidget"));
+        MainWindow->setCentralWidget(centralwidget);
+        menubar = new QMenuBar(MainWindow);
+        menubar->setObjectName(QStringLiteral("menubar"));
+        menubar->setGeometry(QRect(0, 0, 800, 23));
+        MainWindow->setMenuBar(menubar);
+        statusbar = new QStatusBar(MainWindow);
+        statusbar->setObjectName(QStringLiteral("statusbar"));
+        MainWindow->setStatusBar(statusbar);
 
-        retranslateUi(EveClass);
+        retranslateUi(MainWindow);
 
-        QMetaObject::connectSlotsByName(EveClass);
+        QMetaObject::connectSlotsByName(MainWindow);
     } // setupUi
 
-    void retranslateUi(QWidget *EveClass)
+    void retranslateUi(QMainWindow *MainWindow)
     {
-        EveClass->setWindowTitle(QApplication::translate("EveClass", "Eve\346\254\247\346\234\215", Q_NULLPTR));
+        MainWindow->setWindowTitle(QApplication::translate("MainWindow", "EVE \346\254\247\346\234\215", Q_NULLPTR));
     } // retranslateUi
 
 };
 
 namespace Ui {
-    class EveClass: public Ui_EveClass {};
+    class MainWindow: public Ui_MainWindow {};
 } // namespace Ui
 
 QT_END_NAMESPACE

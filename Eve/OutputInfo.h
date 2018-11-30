@@ -13,8 +13,9 @@ public:
 	~OutputInfo();
 public slots:
 	void Monitor(IScheme*);
+	void StandOut(const QString& info);
 private:
-	void print_info(QString &info);
+	void print_info(const QString &info);
 private:
 	Ui::OutputInfo ui;
 };
