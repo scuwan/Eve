@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>Rolelist</class>
+ <widget class="QWidget" name="Rolelist">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>792</width>
+    <height>577</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Rolelist</string>
+  </property>
+  <layout class="QGridLayout" name="gridLayout">
+   <property name="leftMargin">
+    <number>0</number>
+   </property>
+   <property name="topMargin">
+    <number>0</number>
+   </property>
+   <property name="rightMargin">
+    <number>0</number>
+   </property>
+   <property name="bottomMargin">
+    <number>0</number>
+   </property>
+   <property name="spacing">
+    <number>0</number>
+   </property>
+   <item row="0" column="0">
+    <widget class="QTableWidget" name="tableWidget">
+     <attribute name="verticalHeaderVisible">
+      <bool>false</bool>
+     </attribute>
+     <column>
+      <property name="text">
+       <string>角色名称</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>方案</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>启动</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>暂停/重启</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>停止</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>状态</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>线程id</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>释放控制权</string>
+      </property>
+     </column>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <layoutdefault spacing="6" margin="11"/>
+ <resources/>
+ <connections/>
+</ui>
