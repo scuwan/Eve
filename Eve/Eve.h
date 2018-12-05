@@ -4,6 +4,7 @@
 #include <QMainwindow>
 #include <QThread>
 #include <QDockWidget>
+#include <QSharedPointer>
 #include "ui_Eve.h"
 #include "OutputInfo.h"
 #include "Rolelist.h"
@@ -57,7 +58,7 @@ private:
 		IScheme *scheme = nullptr;
 		QString role;
 	};
-	QVector<RoleRuntime> m_runtime;
+	QVector<QSharedPointer<RoleRuntime>> m_runtime;
 	struct RoleInfoWindow
 	{
 		QString role;

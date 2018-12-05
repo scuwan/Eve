@@ -4,18 +4,14 @@
 #include <QMutex>
 #include <QMutexLocker>
 #include <QDatetime>
-class IScheme:public QObject
+#include <QSharedPointer>
+#include <QMap>
+class IScheme :public QObject
 {
 	Q_OBJECT
 public:
-	IScheme(QString role)
-	{
-
-	}
-	virtual ~IScheme()
-	{
-
-	}
+	IScheme(QString role,QString group= QString::fromLocal8Bit("默认组"));
+	virtual ~IScheme();
 	/* code =0*/
 	virtual void SafeExit() = 0;
 	/* code =1*/
@@ -30,19 +26,15 @@ public:
 	{
 		return m_roleName;
 	}
-	void GetInfo(QVector<QString>& i)
-	{
-		i.clear();
-		QMutexLocker locker(&m_mutex);
-		i.swap(m_info);
-	}
+	void GetInfo(QVector<QString>& i);
+	static void Init();
 private:
-	virtual void run()=0;
+	virtual void run() = 0;
 signals:
-	void eState(IScheme*,bool,int code);	    //执行状态
+	void eState(IScheme*, bool, int code);	    //执行状态
 	void newInfo(IScheme*);			//新的消息
 	void quit(IScheme*);
-public slots:
+	public slots:
 	virtual void Run()
 	{
 		run();
@@ -62,9 +54,11 @@ protected:
 	}
 protected:
 	QString m_roleName = "";
+	QString m_groupName = QString::fromLocal8Bit("默认组");
+	const QString DGROUPNAME = QString::fromLocal8Bit("默认组");
+	static QMap<QString, QSharedPointer<QMutex> > m_gmutexs;
 private:
 	QVector<QString> m_info;
 	int flag = 1;
 	QMutex m_mutex;
 };
-

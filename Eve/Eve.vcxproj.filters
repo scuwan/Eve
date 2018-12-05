@@ -66,6 +66,9 @@
     <ClCompile Include="GeneratedFiles\qrc_Eve.cpp">
       <Filter>Generated Files</Filter>
     </ClCompile>
+    <ClCompile Include="IScheme.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="Eve.h">

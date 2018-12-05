@@ -22,6 +22,7 @@ signals:
 	void restartRole(QString role);
 	void stopRole(QString role);
 	void releaseControl(QString role);
+	void cmdInfo(const QString& info);
 public:
 	void setThreadId(QString role,int id);
 public slots:
@@ -32,6 +33,7 @@ private:
 	void parse_role_list();
 	int role_index(QString role);
 	int role_row(QString role);
+	void print_info(const QString& info,QString role=QString::fromLocal8Bit("È«¾Ö"));
 private:
 	Ui::Rolelist ui;
 	struct Role

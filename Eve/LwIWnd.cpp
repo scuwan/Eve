@@ -44,7 +44,7 @@ bool LwIWnd::Attch(int w)
 
 void LwIWnd::Detach()
 {
-	//pGetRes->UnBindWindow();
+	pGetRes->UnBindWindow();
 	pGetRes.Release();//小心哦!!请看最后的“注意”
 }
 

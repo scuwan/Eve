@@ -30,7 +30,13 @@ private:
 	int normal(int s);
 	int return_drones_to_bay(int s);
 	int lanch_drones(int s);
+	//判断无人机是否在空间中
 	bool is_drone_in_space();
+	//判断无人机是否在船的过程中
+	bool is_drone_backing();
+	//闪黄判定,判定到无人机绿色并且有怪断定闪黄
+	bool is_flash_yellow();
+	//绑定窗口
 	bool try_attach_window();
 	//判断船在空间站内
 	bool is_in_space();
@@ -42,6 +48,8 @@ private:
 	bool find_overview(int *pos = nullptr);
 	//查找环绕
 	bool find_orbit(int *pos=nullptr);
+	//检查锁定目标
+	bool find_locktarget(int *pos = nullptr);
 	//Select item
 	bool find_select_item(int *pos = nullptr);
 	//鼠标左键点击

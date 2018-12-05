@@ -50,7 +50,8 @@ namespace
 		{103,27},	/*Set Full Speed*/
 		{203,-7},	/*Equipment 1*/
 		{178,38},	/*Equipemnt 2*/
-		{228,38}	/*Equipemnt 3*/
+		{228,38},	/*Equipemnt 3*/
+		{255,-7}	/*Equipemnt 4*/
 	};
 	const int probe_scanner_wrap_to_within_o[][2]=
 	{
@@ -62,7 +63,7 @@ namespace
 		{180,83},	/*Within 50 km*/
 		{180,98},	/*Within 70 km*/
 		{180,113},	/*Within 100 km*/
-		{57,77}		/*Ignore Result*/
+		{57,47}		/*Ignore Result*/
 	};
 }
 RoleConfigure::RoleConfigure()
@@ -154,6 +155,11 @@ QPoint RoleConfigure::GetInstrumentPanelPos(QString key)
 	else if (key == "Equipment 3")
 	{
 		QPoint pt(m_posInstrumentPanel.x() + instrument_panel_o[4][0], m_posInstrumentPanel.y() + instrument_panel_o[4][1]);
+		return pt;
+	}
+	else if (key == "Equipment 4")
+	{
+		QPoint pt(m_posInstrumentPanel.x() + instrument_panel_o[5][0], m_posInstrumentPanel.y() + instrument_panel_o[5][1]);
 		return pt;
 	}
 	else

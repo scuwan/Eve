@@ -45,7 +45,7 @@ void Rolelist::cmdExecStatus(QString role,bool ok, int code)
 	int row = role_row(role);
 	if (row < 0)
 		return;
-	switch (m_roles[index].currentCmdcode)
+	switch (code)
 	{
 	case 0:	//Exit
 	{
@@ -68,6 +68,7 @@ void Rolelist::cmdExecStatus(QString role,bool ok, int code)
 			ui.tableWidget->item(row, 7)->setText(QChar(0xf127));	/*unlink 图标*/
 			ui.tableWidget->item(row, 7)->setTextColor(Qt::red);
 			m_roles[index].state = 0;
+			print_info(QString::fromLocal8Bit("脚本线程退出成功!!!"), role);
 		}
 		else
 		{
@@ -96,6 +97,7 @@ void Rolelist::cmdExecStatus(QString role,bool ok, int code)
 			ui.tableWidget->item(row, 7)->setText(QChar(0xf127));	/*unlink 图标*/
 			ui.tableWidget->item(row, 7)->setTextColor(Qt::red);
 			m_roles[row].state = 2;
+			print_info(QString::fromLocal8Bit("脚本线程暂停成功!!!"), role);
 		}
 		else
 		{
@@ -114,14 +116,19 @@ void Rolelist::cmdExecStatus(QString role,bool ok, int code)
 		m_roles[row].state = 1;*/
 		if (ok)
 		{	
-			ui.tableWidget->item(row, 5)->setText(QString::fromLocal8Bit("在线刷怪"));
-			ui.tableWidget->item(row, 5)->setTextColor(Qt::green);
-			ui.tableWidget->item(row, 2)->setTextColor(Qt::gray);
-			ui.tableWidget->item(row, 3)->setTextColor(Qt::green);
-			ui.tableWidget->item(row, 4)->setTextColor(Qt::green);
-			ui.tableWidget->item(row, 7)->setText(QChar(0xf0c1));	/*unlink 图标*/
-			ui.tableWidget->item(row, 7)->setTextColor(Qt::green);
-			m_roles[index].state = 1;	/* 在线状态 */
+			if (m_roles[index].oldState == 0)
+			{
+				ui.tableWidget->item(row, 5)->setText(QString::fromLocal8Bit("在线刷怪"));
+				ui.tableWidget->item(row, 5)->setTextColor(Qt::green);
+				ui.tableWidget->item(row, 2)->setTextColor(Qt::gray);
+				ui.tableWidget->item(row, 3)->setTextColor(Qt::green);
+				ui.tableWidget->item(row, 4)->setTextColor(Qt::green);
+				ui.tableWidget->item(row, 7)->setText(QChar(0xf0c1));	/*unlink 图标*/
+				ui.tableWidget->item(row, 7)->setTextColor(Qt::green);
+				m_roles[index].state = 1;	/* 在线状态 */
+				m_roles[index].oldState = -2;
+				print_info(QString::fromLocal8Bit("脚本线程启动成功!!!"), role);
+			}
 		}
 		else
 		{
@@ -131,6 +138,8 @@ void Rolelist::cmdExecStatus(QString role,bool ok, int code)
 			ui.tableWidget->item(row, 3)->setTextColor(Qt::gray);
 			ui.tableWidget->item(row, 4)->setTextColor(Qt::gray);
 			m_roles[index].state = 0;	/* 离线状态 */
+			m_roles[index].oldState = -2;
+			print_info(QString::fromLocal8Bit("脚本线程启动失败!!!"), role);
 		}
 	}
 		break;
@@ -142,22 +151,29 @@ void Rolelist::cmdExecStatus(QString role,bool ok, int code)
 		//ui.tableWidget->item(row, column + 1)->setTextColor(Qt::green);
 		//ui.tableWidget->item(row, column + 2)->setText(QString::fromLocal8Bit("在线"));
 		//ui.tableWidget->item(row, column + 2)->setTextColor(Qt::green);
-		if (ok&&m_roles[index].oldState ==2)
+		if (ok)
 		{
-			ui.tableWidget->item(row, 2)->setTextColor(Qt::gray);
-			ui.tableWidget->item(row, 3)->setText(QChar(0xf04c));
-			ui.tableWidget->item(row, 3)->setTextColor(Qt::green);
-			ui.tableWidget->item(row, 4)->setTextColor(Qt::green);
-			ui.tableWidget->item(row, 5)->setText(QString::fromLocal8Bit("在线刷怪"));
-			ui.tableWidget->item(row, 5)->setTextColor(Qt::green);
-			ui.tableWidget->item(row, 7)->setText(QChar(0xf0c1));	/*unlink 图标*/
-			ui.tableWidget->item(row, 7)->setTextColor(Qt::green);
-			m_roles[index].state = 1;
+			if (m_roles[index].oldState == 2)
+			{
+				ui.tableWidget->item(row, 2)->setTextColor(Qt::gray);
+				ui.tableWidget->item(row, 3)->setText(QChar(0xf04c));
+				ui.tableWidget->item(row, 3)->setTextColor(Qt::green);
+				ui.tableWidget->item(row, 4)->setTextColor(Qt::green);
+				ui.tableWidget->item(row, 5)->setText(QString::fromLocal8Bit("在线刷怪"));
+				ui.tableWidget->item(row, 5)->setTextColor(Qt::green);
+				ui.tableWidget->item(row, 7)->setText(QChar(0xf0c1));	/*unlink 图标*/
+				ui.tableWidget->item(row, 7)->setTextColor(Qt::green);
+				m_roles[index].state = 1;
+				m_roles[index].oldState = -2;
+				print_info(QString::fromLocal8Bit("脚本线程重启成功!!!"), role);
+			}
 		}
 		else
 		{
 			ui.tableWidget->item(row, 3)->setTextColor(Qt::green);
 			m_roles[index].state = 2;
+			m_roles[index].oldState = -2;
+			print_info(QString::fromLocal8Bit("脚本线程重启失败!!!"), role);
 		}
 	}
 	case 4: //释放控制权
@@ -172,6 +188,8 @@ void Rolelist::cmdExecStatus(QString role,bool ok, int code)
 			ui.tableWidget->item(row, 7)->setText(QChar(0xf127));	/*unlink 图标*/
 			ui.tableWidget->item(row, 7)->setTextColor(Qt::red);
 			m_roles[index].state = 2;
+			m_roles[index].oldState = -2;
+			print_info(QString::fromLocal8Bit("脚本线程释放控制权成功!!!"), role);
 		}
 	}
 		break;
@@ -304,20 +322,24 @@ int Rolelist::role_row(QString role)
 	return row;
 }
 
+void Rolelist::print_info(const QString & info,QString role)
+{
+	QString format_info = "[";
+	format_info.append(role);
+	format_info.append("]");
+	format_info.append(info);
+	emit cmdInfo(format_info);
+}
+
 void Rolelist::cellClicked(int row, int column)
 {
+	QString role = ui.tableWidget->item(row, 0)->text();
 	switch (column)
 	{
 	case 2:
 	{
 		if (m_roles[row].state == 0)	//离线
 		{
-			/*ui.tableWidget->item(row, column + 3)->setText(QString::fromLocal8Bit("在线"));
-			ui.tableWidget->item(row, column + 3)->setTextColor(Qt::green);
-			ui.tableWidget->item(row, column)->setTextColor(Qt::gray);
-			ui.tableWidget->item(row, column + 1)->setTextColor(Qt::green);
-			ui.tableWidget->item(row, column + 2)->setTextColor(Qt::green);
-			m_roles[row].state = 1;*/
 			ui.tableWidget->item(row, column + 1)->setTextColor(Qt::gray);
 			ui.tableWidget->item(row, column + 2)->setTextColor(Qt::gray);
 			ui.tableWidget->item(row, column)->setTextColor(Qt::yellow);
@@ -325,6 +347,7 @@ void Rolelist::cellClicked(int row, int column)
 			ui.tableWidget->item(row, column + 3)->setTextColor(Qt::yellow);
 			m_roles[row].oldState = 0;
 			m_roles[row].currentCmdcode = 2;
+			print_info(QString::fromLocal8Bit("启动脚本线程..."), role);
 			emit launchRole(m_roles[row].role, m_roles[row].scheme);
 		}
 		break;
@@ -333,13 +356,6 @@ void Rolelist::cellClicked(int row, int column)
 	{
 		if (m_roles[row].state == 1)	//暂停
 		{
-			/*ui.tableWidget->item(row, column-1)->setTextColor(Qt::gray);
-			ui.tableWidget->item(row, column)->setText(QChar(0xf04c) + QString::fromLocal8Bit(" 重启"));
-			ui.tableWidget->item(row, column)->setTextColor(Qt::yellow);
-			ui.tableWidget->item(row, column+1)->setTextColor(Qt::green);
-			ui.tableWidget->item(row, column + 2)->setText(QString::fromLocal8Bit("暂停"));
-			ui.tableWidget->item(row, column + 2)->setTextColor(Qt::yellow);
-			m_roles[row].state = 2;*/
 			ui.tableWidget->item(row, column - 1)->setTextColor(Qt::gray);
 			ui.tableWidget->item(row, column + 1)->setTextColor(Qt::gray);
 			ui.tableWidget->item(row, column)->setTextColor(Qt::yellow);
@@ -348,6 +364,7 @@ void Rolelist::cellClicked(int row, int column)
 			m_roles[row].oldState = 1;
 			m_roles[row].currentCmdcode = 1;
 			m_roles[row].state = -2;	//操作执行中
+			print_info(QString::fromLocal8Bit("暂停脚本线程..."), role);
 			emit pauseRole(m_roles[row].role);
 		}
 		else if (m_roles[row].state == 2)	//重启
@@ -367,6 +384,7 @@ void Rolelist::cellClicked(int row, int column)
 			m_roles[row].currentCmdcode = 3;
 			m_roles[row].oldState = 2;
 			m_roles[row].state = -2;	//操作执行中
+			print_info(QString::fromLocal8Bit("重启脚本线程..."), role);
 			emit restartRole(m_roles[row].role);
 		}
 		break;
@@ -391,6 +409,7 @@ void Rolelist::cellClicked(int row, int column)
 			m_roles[row].oldState = m_roles[row].state;
 			m_roles[row].state = -2;
 			m_roles[row].currentCmdcode = 0;
+			print_info(QString::fromLocal8Bit("退出脚本线程..."), role);
 			emit stopRole(m_roles[row].role);
 		}
 		break;
@@ -407,6 +426,7 @@ void Rolelist::cellClicked(int row, int column)
 			m_roles[row].oldState = 1;
 			m_roles[row].state = -2;
 			m_roles[row].currentCmdcode = 4;
+			print_info(QString::fromLocal8Bit("释放脚本控制权..."), role);
 			emit releaseControl(m_roles[row].role);
 
 		}
