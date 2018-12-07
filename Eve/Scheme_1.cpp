@@ -47,14 +47,30 @@ namespace
 			{\
 				format_out_put(QString::fromLocal8Bit(" 来红!!!"));\
 				m_normalState = -1;\
+				QPoint pt;\
+				pt = m_configure.GetInstrumentPanelPos("Equipment 4");\
+				l_click(pt);\
 				return NOK;\
 			}\
 			if (check_hp())\
 			{\
 				format_out_put(QString::fromLocal8Bit(" 低血!!!"));\
 				m_normalState = -1;\
+				QPoint pt;\
+				pt = m_configure.GetInstrumentPanelPos("Equipment 4");\
+				l_click(pt);\
 				return NOK;\
 			}\
+			CHECK_STATEMACHIN_RETURN(s);\
+			Sleep(1000);\
+			--nnn;\
+		}\
+	}
+#define DELAY_N_SECONDS_WITH_NO_RED_HP_RETURN(n,s) if(1)\
+	{\
+		int nnn=n;\
+		while(nnn>0)\
+		{\
 			CHECK_STATEMACHIN_RETURN(s);\
 			Sleep(1000);\
 			--nnn;\
@@ -133,68 +149,100 @@ QString Scheme_1::SchemeName()
 int Scheme_1::safe_back_station(int s)
 {
 	format_out_put(QString::fromLocal8Bit(" 执行回站操作."));
-	int repeat_times = 5;
-	for (int i = 0; i < repeat_times; ++i)
+	int pos[2] = { 0,0 };
+	if (is_in_space())	//空间站内
 	{
-		CHECK_STATEMACHIN_RETURN(s);
-		int pos[2] = { 0,0 };
-		if (is_in_space())	//空间站内
+		format_out_put(QString::fromLocal8Bit(" 成功回站"));
+		return OK;
+	}
+	else if(is_out_space())	//空间站外
+	{
+		switch_overview_page("空间");
+		QPoint pt = m_configure.GetStationItemPos("Approach");
+		DELAY_N_SECONDS_WITH_NO_RED_HP_RETURN(1,s);
+		l_click(pt);
+		//回收无人机
+		int ret=return_drones_to_bay(s);
+		if (ret == NOK)
 		{
-			format_out_put(QString::fromLocal8Bit(" 成功回站"));
-			return OK;
+			format_out_put(QString::fromLocal8Bit(" 回收无人机失败."));
 		}
-		else if(is_out_space())	//空间站外
+		else if (ret == OK)
 		{
-			//回收无人机
-			int ret=return_drones_to_bay(s);
-			if (ret == NOK)
+			format_out_put(QString::fromLocal8Bit(" 回收无人机成功."));
+		}
+		else
+		{
+			//print_state_machine(ret);
+			return ret;
+		}
+		//进入空间页面
+		switch_overview_page("空间");
+		DELAY_N_SECONDS_WITH_NO_RED_HP_RETURN(1, s);
+		if (find_station(pos)) //空间站
+		{
+			l_click(pos[0], pos[1]);
+			DELAY_N_SECONDS_WITH_NO_RED_HP_RETURN(1, s);
+			QPoint pt = m_configure.GetStationItemPos("Approach");
+			l_click(pt);
+			DELAY_N_SECONDS_WITH_NO_RED_HP_RETURN(2, s);	//延时2s
+			pt = m_configure.GetStationItemPos("Wrap to with 0 m");
+			l_click(pt);
+			int n = 60;
+			while (n > 0)
 			{
-				format_out_put(QString::fromLocal8Bit(" 回收无人机失败."));
+				DELAY_N_SECONDS_WITH_NO_RED_HP_RETURN(2, s);	//延时2s
+				if (check_tethered())
+					break;
+				--n;
 			}
-			else if (ret == OK)
+			DELAY_N_SECONDS_WITH_NO_RED_HP_RETURN(2, s);	//延时2s
+			pt = m_configure.GetStationItemPos("Dock");
+			switch_overview_page("空间");
+			DELAY_N_SECONDS_WITH_NO_RED_HP_RETURN(2, s);
+			l_click(pt);
+			n = 5;
+			while (n > 0)
 			{
-				format_out_put(QString::fromLocal8Bit(" 回收无人机成功."));
+				DELAY_N_SECONDS_WITH_NO_RED_HP_RETURN(2, s);	//延时2s
+				if (is_in_space())
+				{
+					return OK;
+				}
+			}
+		}
+		else //找不到空间站
+		{
+			if (is_out_space())
+			{
+				format_out_put(QString::fromLocal8Bit(" 找不到空间站"));
+				return NOK;
 			}
 			else
 			{
-				//print_state_machine(ret);
-				return ret;
-			}
-			//进入空间页面
-			QPoint pt=m_configure.GetOverviewPos("空间");
-			l_click(pt);
-			DELAY_N_SECONDS_RETURN(1, s);
-			if (find_station(pos)) //空间站
-			{
-				l_click(pos[0] + 2, pos[1] + 2);
-				Sleep(500);
-				pt = m_configure.GetStationItemPos("Approach");
-				l_click(pt);
-				DELAY_N_SECONDS_RETURN(2, s);	//延时2s
-				pt = m_configure.GetStationItemPos("Dock");
-				l_click(pt);
-				DELAY_N_SECONDS_RETURN(30, s);	//延时30s
-				if (is_in_space())
+				int n = 5;
+				while (n > 0)
 				{
-					format_out_put(QString::fromLocal8Bit(" 成功回站."));
-					return OK;
-				}
-				else
-				{
-					continue;
+					DELAY_N_SECONDS_WITH_NO_RED_HP_RETURN(2, s);	//延时2s
+					if (is_in_space())
+					{
+						return OK;
+					}
 				}
 			}
-			else //找不到空间站
-			{
-				format_out_put(QString::fromLocal8Bit(" 找不到空间站"));
-				DELAY_N_SECONDS_RETURN(5, s);	//延时30s
-				continue;
-			}
-		}   
-		else //正在回站(出站)的过程中
+		}
+	}   
+	else //正在回站(出站)的过程中
+	{
+		format_out_put(QString::fromLocal8Bit(" 正在回站，请等待..."));
+		int n = 5;
+		while (n > 0)
 		{
-			format_out_put(QString::fromLocal8Bit(" 正在回站，请等待..."));
-			DELAY_N_SECONDS_RETURN(5, s);
+			DELAY_N_SECONDS_WITH_NO_RED_HP_RETURN(2, s);	//延时2s
+			if (is_in_space())
+			{
+				return OK;
+			}
 		}
 	}
 	format_out_put(QString::fromLocal8Bit(" 回空间站失败."));
@@ -265,7 +313,7 @@ int Scheme_1::wrap_to_station(int s)
 	if (ret == false)
 	{
 		l_click(pt);
-		DELAY_N_SECONDS_RETURN(1, s);
+		DELAY_N_SECONDS_WITH_NO_RED_HP_RETURN(1, s);;
 		ret = find_station(pos);
 	}
 	if (ret)
@@ -277,7 +325,7 @@ int Scheme_1::wrap_to_station(int s)
 		Sleep(2000);
 		pt = m_configure.GetStationItemPos("Wrap to with 0 m");
 		l_click(pt);
-		DELAY_N_SECONDS_RETURN(10, s);
+		DELAY_N_SECONDS_WITH_NO_RED_HP_RETURN(10, s);
 		int n = 30;
 		while (n > 0)
 		{
@@ -286,7 +334,7 @@ int Scheme_1::wrap_to_station(int s)
 			else
 			{
 				--n;
-				DELAY_N_SECONDS_RETURN(1, s);
+				DELAY_N_SECONDS_WITH_NO_RED_HP_RETURN(1, s);
 			}
 		}
 		if (check_tethered())
@@ -381,11 +429,13 @@ int Scheme_1::normal(int s=0)
 					QPoint wrap_to_within(pos[0] + o.x(), pos[1] + o.y());
 					o = m_configure.GetProbeScannerWraptoWithin_o("Within 30 km");
 					QPoint within_n_km(pos[0] + o.x(), pos[1] + o.y());
+					m_wnd->LockInput(2);
 					r_click(pos[0] + 5, pos[1] + 2);
-					DELAY_N_SECONDS_RETURN(2, s);
+					Sleep(2000);
 					m_wnd->MouseMoveTo(wrap_to_within.x(), wrap_to_within.y());
-					DELAY_N_SECONDS_RETURN(1, s);
+					Sleep(1000);
 					l_click(within_n_km);
+					m_wnd->LockInput(0);
 					Sleep(1000);
 					m_wnd->MouseMoveTo(500, 10);
 					close_popup_window();
@@ -555,18 +605,6 @@ int Scheme_1::normal(int s=0)
 								while (1)
 								{
 									switch_overview_page("残骸");
-									if (check_red())	//来红
-									{
-										format_out_put(QString::fromLocal8Bit(" 来红!!!"));
-										m_normalState = -1;
-										return NOK;
-									}
-									if (check_hp())	//低血
-									{
-										format_out_put(QString::fromLocal8Bit(" 低血!!!"));
-										m_normalState = -1;
-										return NOK;
-									}
 									if (!is_nothing_found())
 									{
 										l_click(pt_one);
@@ -614,12 +652,18 @@ int Scheme_1::normal(int s=0)
 		{
 			format_out_put(QString::fromLocal8Bit(" 来红!!!"));
 			m_normalState = -1;
+			QPoint pt;
+			pt = m_configure.GetInstrumentPanelPos("Equipment 4");
+			l_click(pt);
 			return NOK;
 		}
 		if (check_hp())	//低血
 		{
 			format_out_put(QString::fromLocal8Bit(" 低血!!!"));
 			m_normalState = -1;
+			QPoint pt;
+			pt = m_configure.GetInstrumentPanelPos("Equipment 4");
+			l_click(pt);
 			return NOK;
 		}
 		//检查怪是否刷完，每20s检测一次
@@ -709,14 +753,16 @@ int Scheme_1::return_drones_to_bay(int s)
 		{
 			pt = m_configure.GetDronesPos("Drones in Bay");
 			l_click(pt);
-			Sleep(200);
+			Sleep(1000);
 		}
 		pt = m_configure.GetDronesPos("Drones in Local Space");
 		QPoint pt1 = m_configure.GetDronesLocalSpacePos("Return to Drone Bay");
+		m_wnd->LockInput(2);
 		r_click(pt);
 		Sleep(1000);
 		l_click(pt1);
-		DELAY_N_SECONDS_RETURN(5, s);
+		m_wnd->LockInput(0);
+		DELAY_N_SECONDS_WITH_NO_RED_HP_RETURN(5, s);
 		int n = 15;
 		while (n>0)
 		{
@@ -725,13 +771,13 @@ int Scheme_1::return_drones_to_bay(int s)
 				if (is_drone_in_space())
 				{
 					--n;
-					DELAY_N_SECONDS_RETURN(1, s);
+					DELAY_N_SECONDS_WITH_NO_RED_HP_RETURN(1, s);
 					m_wnd->LockInput(2);
 					r_click(pt);
 					Sleep(1000);
 					l_click(pt1);
 					m_wnd->LockInput(0);
-					DELAY_N_SECONDS_RETURN(2, s);
+					DELAY_N_SECONDS_WITH_NO_RED_HP_RETURN(2, s);
 					//format_out_put(QString::fromLocal8Bit("无人机在空间中."));
 				}
 				else
@@ -740,7 +786,7 @@ int Scheme_1::return_drones_to_bay(int s)
 			else
 			{
 				--n;
-				DELAY_N_SECONDS_RETURN(2, s);
+				DELAY_N_SECONDS_WITH_NO_RED_HP_RETURN(2, s);
 			}
 		}
 		if (is_drone_in_space())
@@ -761,29 +807,29 @@ int Scheme_1::lanch_drones(int s)
 		return false;	//在空间站内
 	}
 	QPoint pt = m_configure.GetDronesPos("Drones in Bay");
-	r_click(pt);
-	DELAY_N_SECONDS_RETURN(1, s);
 	QPoint pt_1 = m_configure.GetDroneBayPos("Lanch drones");
+	m_wnd->LockInput(2);
+	r_click(pt);
+	Sleep(1000);
 	l_click(pt_1);
+	m_wnd->LockInput(0);
+	DELAY_N_SECONDS_RETURN(4, s);
 	int n = 10;
 	while (n>0)
 	{
 		if (!is_drone_in_space())
 		{
 			--n;
-			DELAY_N_SECONDS_RETURN(1, s);
 			r_click(pt);
-			DELAY_N_SECONDS_RETURN(1, s);
+			Sleep(1000);
 			l_click(pt_1);
-			DELAY_N_SECONDS_RETURN(1, s);
+			DELAY_N_SECONDS_RETURN(2, s);
 		}
 		else
 		{
 			return OK;
 		}
 	}
-	qDebug() << "pt: (" << pt.x() << "," << pt.y() << ")";
-	qDebug() << "pt_1: (" << pt_1.x() << "," << pt_1.y() << ")";
 	return NOK;
 }
 
@@ -875,19 +921,63 @@ bool Scheme_1::is_out_space()
 bool Scheme_1::find_station(int * pos)
 {
 	QPoint pt_overview = m_configure.GetOverviewPos();
-	bool ret = m_wnd->FindPicture(pt_overview.x(), pt_overview.y(), m_wnd->GetWindowRect().right, m_wnd->GetWindowRect().bottom, "pic/Station1.bmp", pos, "000000", 0.7);
-	if (!ret)
+	bool ret = m_wnd->FindPicture(pt_overview.x(), pt_overview.y(), m_wnd->GetWindowRect().right, m_wnd->GetWindowRect().bottom, "pic/Station1.bmp", pos, "000000", 0.8);
+	if (ret)
 	{
-		ret = m_wnd->FindPicture(0, 0, m_wnd->GetWindowRect().right, m_wnd->GetWindowRect().bottom, "pic/Station2.bmp", pos, "000000", 0.7);
-		if (!ret)
-		{
-			ret = m_wnd->FindPicture(0, 0, m_wnd->GetWindowRect().right, m_wnd->GetWindowRect().bottom, "pic/Station3.bmp", pos, "000000", 0.7);
-		}
-		if (!ret)
-		{
-			ret = m_wnd->FindPicture(0, 0, m_wnd->GetWindowRect().right, m_wnd->GetWindowRect().bottom, "pic/StationNormal.bmp", pos, "000000", 0.7);
-		}
+		pos[0] += 10;
+		pos[1] += 8;
+		return ret;
 	}
+	ret = m_wnd->FindPicture(pt_overview.x(), pt_overview.y(), m_wnd->GetWindowRect().right, m_wnd->GetWindowRect().bottom, "pic/Station2.bmp", pos, "000000", 0.8);
+	if (ret)
+	{
+		pos[0] += 10;
+		pos[1] += 8;
+		return ret;
+	}
+	ret = m_wnd->FindPicture(pt_overview.x(), pt_overview.y(), m_wnd->GetWindowRect().right, m_wnd->GetWindowRect().bottom, "pic/Station3.bmp", pos, "000000", 0.8);
+	if (ret)
+	{
+		pos[0] += 10;
+		pos[1] += 8;
+		return ret;
+	}
+	ret = m_wnd->FindPicture(pt_overview.x(), pt_overview.y(), m_wnd->GetWindowRect().right, m_wnd->GetWindowRect().bottom, "pic/Station4.bmp", pos, "000000", 0.8);
+	if (ret)
+	{
+		pos[0] += 10;
+		pos[1] += 8;
+		return ret;
+	}
+	ret = m_wnd->FindPicture(pt_overview.x(), pt_overview.y(), m_wnd->GetWindowRect().right, m_wnd->GetWindowRect().bottom, "pic/Station5.bmp", pos, "000000", 0.8);
+	if (ret)
+	{
+		pos[0] += 10;
+		pos[1] += 8;
+		return ret;
+	}
+	ret = m_wnd->FindPicture(pt_overview.x(), pt_overview.y(), m_wnd->GetWindowRect().right, m_wnd->GetWindowRect().bottom, "pic/Station6.bmp", pos, "000000", 0.8);
+	if (ret)
+	{
+		pos[0] += 10;
+		pos[1] += 8;
+		return ret;
+	}
+	ret = m_wnd->FindPicture(pt_overview.x(), pt_overview.y(), m_wnd->GetWindowRect().right, m_wnd->GetWindowRect().bottom, "pic/Station7.bmp", pos, "000000", 0.8);
+	if (ret)
+	{
+		pos[0] += 10;
+		pos[1] += 8;
+		return ret;
+	}
+	ret = m_wnd->FindPicture(pt_overview.x(), pt_overview.y(), m_wnd->GetWindowRect().right, m_wnd->GetWindowRect().bottom, "pic/Station8.bmp", pos, "000000", 0.8);
+	if (ret)
+	{
+		pos[0] += 10;
+		pos[1] += 8;
+		return ret;
+	}
+	ret = m_wnd->FindPicture(pt_overview.x(), pt_overview.y(), m_wnd->GetWindowRect().right, m_wnd->GetWindowRect().bottom, "pic/StationNormal.bmp", pos, "000000", 0.8);
 	return ret;
 }
 
@@ -930,6 +1020,7 @@ void Scheme_1::l_click(int x, int y)
 	m_wnd->MouseMoveTo(x, y);
 	Sleep(200);
 	m_wnd->MouseLeftClicked();
+	Sleep(200);
 	m_wnd->LockInput(0);
 }
 
@@ -939,6 +1030,7 @@ void Scheme_1::r_click(QPoint pt)
 	m_wnd->MouseMoveTo(pt.x(),pt.y());
 	Sleep(200);
 	m_wnd->MouseRightClicked();
+	Sleep(200);
 	m_wnd->LockInput(0);
 }
 
@@ -985,7 +1077,9 @@ bool Scheme_1::check_hp()
 	QPoint pt_panel = m_configure.GetInstrumentPanelPos();
 	int p_hp[2];
 	p_hp[0] = pt_panel.x() + 36;
-	p_hp[1] = pt_panel.y() - 65;
+	p_hp[1] = pt_panel.y() - 65;	//甲抗
+	//p_hp[0] = pt_panel.x() - 11;
+	//p_hp[1] = pt_panel.y() - 30;	//顿抗
 	if (m_wnd->FindColor(p_hp[0], p_hp[1], p_hp[0] + 5, p_hp[1] + 3, "FF1F1F-000000"))
 		return true;
 	if (m_wnd->FindColor(p_hp[0], p_hp[1], p_hp[0] + 5, p_hp[1] + 3, "FF1E1E-000000"))

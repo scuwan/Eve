@@ -28,8 +28,8 @@ namespace
 	};
 	const int drones_o[][2] = 
 	{
-		{30,35},	/*Drones in Bay*/
-		{30,57}		/*Drones in Local Space*/
+		{50,35},	/*Drones in Bay*/
+		{50,57}		/*Drones in Local Space*/
 	};
 	const int drones_in_local_space[][2] =
 	{
