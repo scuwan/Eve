@@ -50,6 +50,7 @@ private:
 	bool find_orbit(int *pos=nullptr);
 	//检查锁定目标
 	bool find_locktarget(int *pos = nullptr);
+	bool find_lockedtarget(int *pos = nullptr);
 	//Select item
 	bool find_select_item(int *pos = nullptr);
 	//鼠标左键点击
@@ -62,6 +63,12 @@ private:
 	void start_rerun_timer();
 	//检查是否有泡泡
 	bool check_bubble();
+	//网子检查
+	bool check_web();
+	bool find_web_overview(int * pos);
+	//扰断检查
+	bool check_broken();
+	bool find_broken_overview(int *pos);
 	//检查是否来红
 	bool check_red();
 	//检查低血
@@ -89,7 +96,7 @@ private:
 	//
 	bool switch_overview_page(QString page);
 	//格式化输出
-	void format_out_put(QString i);
+	void format_out_put(const QString& i,const QString& color="#ffffff");
 	//检查状态改变
 	bool check_stateMachine(int csm);
 	//用户命令输入打印

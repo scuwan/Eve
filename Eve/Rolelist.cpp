@@ -2,7 +2,9 @@
 #include <QFile>
 #include <QDebug>
 #include <QTableWidgetItem>
+#include <QDateTime>
 #include <IconFont.h>
+
 Rolelist::Rolelist(QWidget *parent)
 	: QWidget(parent)
 {
@@ -322,13 +324,18 @@ int Rolelist::role_row(QString role)
 	return row;
 }
 
-void Rolelist::print_info(const QString & info,QString role)
+void Rolelist::print_info(const QString & info,QString role, const QString color)
 {
+	QDateTime current_time = QDateTime::currentDateTime();
+	QString current_date = current_time.toString("yyyy.MM.dd hh:mm:ss.zzz ddd");
 	QString format_info = "[";
+	format_info.append(current_date);
+	format_info.append("] ");
+	format_info.append("[");
 	format_info.append(role);
-	format_info.append("]");
+	format_info.append("] ");
 	format_info.append(info);
-	emit cmdInfo(format_info);
+	emit cmdInfo(format_info, color);
 }
 
 void Rolelist::cellClicked(int row, int column)
@@ -347,7 +354,7 @@ void Rolelist::cellClicked(int row, int column)
 			ui.tableWidget->item(row, column + 3)->setTextColor(Qt::yellow);
 			m_roles[row].oldState = 0;
 			m_roles[row].currentCmdcode = 2;
-			print_info(QString::fromLocal8Bit("启动脚本线程..."), role);
+			print_info(QString::fromLocal8Bit("启动脚本线程..."), role,"#ff0000");
 			emit launchRole(m_roles[row].role, m_roles[row].scheme);
 		}
 		break;
@@ -364,18 +371,11 @@ void Rolelist::cellClicked(int row, int column)
 			m_roles[row].oldState = 1;
 			m_roles[row].currentCmdcode = 1;
 			m_roles[row].state = -2;	//操作执行中
-			print_info(QString::fromLocal8Bit("暂停脚本线程..."), role);
+			print_info(QString::fromLocal8Bit("暂停脚本线程..."), role,"#ff0000");
 			emit pauseRole(m_roles[row].role);
 		}
 		else if (m_roles[row].state == 2)	//重启
 		{
-			//ui.tableWidget->item(row, column - 1)->setTextColor(Qt::gray);
-			//ui.tableWidget->item(row,column)->setText(QChar(0xf04c) + QString::fromLocal8Bit(" 暂停"));	/* 暂停图标*/
-			//ui.tableWidget->item(row, column)->setTextColor(Qt::green);
-			//ui.tableWidget->item(row, column + 1)->setTextColor(Qt::green);
-			//ui.tableWidget->item(row, column + 2)->setText(QString::fromLocal8Bit("在线"));
-			//ui.tableWidget->item(row, column + 2)->setTextColor(Qt::green);
-			//m_roles[row].state = 1;
 			ui.tableWidget->item(row, column - 1)->setTextColor(Qt::gray);
 			ui.tableWidget->item(row, column + 1)->setTextColor(Qt::gray);
 			ui.tableWidget->item(row, column)->setTextColor(Qt::yellow);
@@ -384,7 +384,7 @@ void Rolelist::cellClicked(int row, int column)
 			m_roles[row].currentCmdcode = 3;
 			m_roles[row].oldState = 2;
 			m_roles[row].state = -2;	//操作执行中
-			print_info(QString::fromLocal8Bit("重启脚本线程..."), role);
+			print_info(QString::fromLocal8Bit("重启脚本线程..."), role,"#ff0000");
 			emit restartRole(m_roles[row].role);
 		}
 		break;
@@ -393,13 +393,6 @@ void Rolelist::cellClicked(int row, int column)
 	{
 		if (m_roles[row].state == 1||m_roles[row].state==2)	//退出
 		{
-			//ui.tableWidget->item(row, column - 2)->setTextColor(Qt::green);
-			//ui.tableWidget->item(row, column-1)->setText(QChar(0xf04c) + QString::fromLocal8Bit(" 暂停"));	/* 暂停图标*/
-			//ui.tableWidget->item(row, column-1)->setTextColor(Qt::gray);
-			//ui.tableWidget->item(row, column)->setTextColor(Qt::gray);
-			//ui.tableWidget->item(row, column + 1)->setText(QString::fromLocal8Bit("离线"));
-			//ui.tableWidget->item(row, column + 1)->setTextColor(Qt::gray);
-			//m_roles[row].state = 0;
 			ui.tableWidget->item(row, column - 2)->setTextColor(Qt::gray);
 			ui.tableWidget->item(row, column - 1)->setTextColor(Qt::gray);
 			ui.tableWidget->item(row, column)->setTextColor(Qt::yellow);
@@ -409,7 +402,7 @@ void Rolelist::cellClicked(int row, int column)
 			m_roles[row].oldState = m_roles[row].state;
 			m_roles[row].state = -2;
 			m_roles[row].currentCmdcode = 0;
-			print_info(QString::fromLocal8Bit("退出脚本线程..."), role);
+			print_info(QString::fromLocal8Bit("退出脚本线程..."), role,"#ff0000");
 			emit stopRole(m_roles[row].role);
 		}
 		break;
@@ -426,7 +419,7 @@ void Rolelist::cellClicked(int row, int column)
 			m_roles[row].oldState = 1;
 			m_roles[row].state = -2;
 			m_roles[row].currentCmdcode = 4;
-			print_info(QString::fromLocal8Bit("释放脚本控制权..."), role);
+			print_info(QString::fromLocal8Bit("释放脚本控制权..."), role,"#ff0000");
 			emit releaseControl(m_roles[row].role);
 
 		}

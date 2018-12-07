@@ -23,12 +23,12 @@ QUnitt::~QUnitt()
 
 void QUnitt::print_info(IScheme* scheme)
 {
-	QVector<QString> info;
+	/*QVector<QString> info;
 	scheme->GetInfo(info);
 	for (int i = 0; i < info.size(); ++i)
 	{
 		qDebug() << info[i];
-	}
+	}*/
 }
 
 void QUnitt::quit()

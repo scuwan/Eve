@@ -12,10 +12,9 @@ public:
 	OutputInfo(QWidget *parent = Q_NULLPTR);
 	~OutputInfo();
 public slots:
-	void Monitor(IScheme*);
-	void StandOut(const QString& info);
+	void StandOut(const QString& info, const QString& color);
 private:
-	void print_info(const QString &info);
+	void print_info(const QString &info,const QString &color="#ffffff");
 private:
 	Ui::OutputInfo ui;
 };

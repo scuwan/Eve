@@ -8,6 +8,8 @@
 
 namespace
 {
+#define SECURITY_COLOR "#ff0000"
+#define USER_INPUT_EVENT_COLOR "#00aa00"
 	enum
 	{ 
 		idle = 0/*无状态*/,in_station/*空间站内*/,out_station/*空间站外*/,go_abnormal/*前往异常*/,\
@@ -45,7 +47,7 @@ namespace
 		{\
 			if (check_red())\
 			{\
-				format_out_put(QString::fromLocal8Bit(" 来红!!!"));\
+				format_out_put(QString::fromLocal8Bit("来红!!!"),SECURITY_COLOR);\
 				m_normalState = -1;\
 				QPoint pt;\
 				pt = m_configure.GetInstrumentPanelPos("Equipment 4");\
@@ -54,7 +56,7 @@ namespace
 			}\
 			if (check_hp())\
 			{\
-				format_out_put(QString::fromLocal8Bit(" 低血!!!"));\
+				format_out_put(QString::fromLocal8Bit("低血!!!"),SECURITY_COLOR);\
 				m_normalState = -1;\
 				QPoint pt;\
 				pt = m_configure.GetInstrumentPanelPos("Equipment 4");\
@@ -638,7 +640,7 @@ int Scheme_1::normal(int s=0)
 				}
 				else
 				{
-					format_out_put(QString::fromLocal8Bit(" 找不到异常."));
+					format_out_put(QString::fromLocal8Bit("找不到异常."));
 					return NOK;
 				}
 			}
@@ -648,18 +650,182 @@ int Scheme_1::normal(int s=0)
 	case 2:
 		static int count_t_check_guai = 0;
 		static int count_t_flash_yellow = 0;
-		if (check_red())	//来红
+		//网子检查
+		if (check_web())
 		{
-			format_out_put(QString::fromLocal8Bit(" 来红!!!"));
+			format_out_put(QString::fromLocal8Bit("检查到网子,打掉它"));
+			switch_overview_page("刷怪");
+			DELAY_N_SECONDS_WITH_NO_RED_HP_RETURN(1, s);
+			int pos[2] = { 0,0 };
+			bool ret = find_web_overview(pos);
+			if (ret)
+			{
+				l_click(pos[0], pos[1]);
+				DELAY_N_SECONDS_WITH_NO_RED_HP_RETURN(1, s);
+				int n = 5;
+				while (n > 0)
+				{
+					if (find_lockedtarget(pos))
+					{
+						l_click(100, 3);
+						m_wnd->KeyPress('F');
+						DELAY_N_SECONDS_WITH_NO_RED_HP_RETURN(1, s);
+						m_wnd->KeyPress('F');
+						DELAY_N_SECONDS_WITH_NO_RED_HP_RETURN(1, s);
+						m_wnd->KeyPress('F');
+						break;
+					}
+					else if (find_locktarget(pos))
+					{
+						l_click(pos[0] + 5, pos[1] + 2);
+						DELAY_N_SECONDS_WITH_NO_RED_HP_RETURN(5, s);
+						l_click(100, 3);
+						m_wnd->KeyPress('F');
+						DELAY_N_SECONDS_WITH_NO_RED_HP_RETURN(1, s);
+					}
+					else
+					{
+						DELAY_N_SECONDS_WITH_NO_RED_HP_RETURN(2, s);
+					}
+					--n;
+				}
+			}
+			break;
+		}
+		else
+		{
+			int pos[2] = { 0,0 };
+			bool ret = find_web_overview(pos);
+			if (ret)
+			{
+				format_out_put(QString::fromLocal8Bit("检查到网子,打掉它"));
+				l_click(pos[0], pos[1]);
+				DELAY_N_SECONDS_WITH_NO_RED_HP_RETURN(1, s);
+				int n = 5;
+				while (n > 0)
+				{
+					if (find_lockedtarget(pos))
+					{
+						l_click(100, 3);
+						m_wnd->KeyPress('F');
+						DELAY_N_SECONDS_WITH_NO_RED_HP_RETURN(1, s);
+						m_wnd->KeyPress('F');
+						DELAY_N_SECONDS_WITH_NO_RED_HP_RETURN(1, s);
+						m_wnd->KeyPress('F');
+						break;
+					}
+					else if (find_locktarget(pos))
+					{
+						l_click(pos[0] + 5, pos[1] + 2);
+						DELAY_N_SECONDS_WITH_NO_RED_HP_RETURN(5, s);
+						l_click(100, 3);
+						m_wnd->KeyPress('F');
+						DELAY_N_SECONDS_WITH_NO_RED_HP_RETURN(1, s);
+					}
+					else
+					{
+						DELAY_N_SECONDS_WITH_NO_RED_HP_RETURN(2, s);
+					}
+					--n;
+				}
+				break;
+			}
+		}
+		//检查扰断
+		if (check_broken())
+		{
+			format_out_put(QString::fromLocal8Bit("检查到扰断,打掉它"));
+			switch_overview_page("刷怪");
+			DELAY_N_SECONDS_WITH_NO_RED_HP_RETURN(1, s);
+			int pos[2] = {0,0};
+			bool ret = find_broken_overview(pos);
+			if (ret)
+			{
+				l_click(pos[0],pos[1]);
+				DELAY_N_SECONDS_WITH_NO_RED_HP_RETURN(1, s);
+				int n = 5;
+				while (n > 0)
+				{
+					if (find_lockedtarget(pos))
+					{
+						l_click(100, 3);
+						m_wnd->KeyPress('F');
+						DELAY_N_SECONDS_WITH_NO_RED_HP_RETURN(1, s);
+						m_wnd->KeyPress('F');
+						DELAY_N_SECONDS_WITH_NO_RED_HP_RETURN(1, s);
+						m_wnd->KeyPress('F');
+						break;
+					}
+					else if (find_locktarget(pos))
+					{
+						l_click(pos[0] + 5, pos[1] + 2);
+						DELAY_N_SECONDS_WITH_NO_RED_HP_RETURN(5, s);
+						l_click(100, 3);
+						m_wnd->KeyPress('F');
+						DELAY_N_SECONDS_WITH_NO_RED_HP_RETURN(1, s);
+					}
+					else
+					{
+						DELAY_N_SECONDS_WITH_NO_RED_HP_RETURN(2, s);
+					}
+					--n;
+				}
+			}
+			break;
+		}
+		else
+		{
+			int pos[2] = { 0,0 };
+			bool ret = find_broken_overview(pos);
+			if (ret)
+			{
+				format_out_put(QString::fromLocal8Bit("检查到扰断,打掉它"));
+				l_click(pos[0], pos[1]);
+				DELAY_N_SECONDS_WITH_NO_RED_HP_RETURN(1, s);
+				int n = 5;
+				while (n > 0)
+				{
+					if (find_lockedtarget(pos))
+					{
+						l_click(100, 3);
+						m_wnd->KeyPress('F');
+						DELAY_N_SECONDS_WITH_NO_RED_HP_RETURN(1, s);
+						m_wnd->KeyPress('F');
+						DELAY_N_SECONDS_WITH_NO_RED_HP_RETURN(1, s);
+						m_wnd->KeyPress('F');
+						break;
+					}
+					else if (find_locktarget(pos))
+					{
+						l_click(pos[0] + 5, pos[1] + 2);
+						DELAY_N_SECONDS_WITH_NO_RED_HP_RETURN(5, s);
+						l_click(100, 3);
+						m_wnd->KeyPress('F');
+						DELAY_N_SECONDS_WITH_NO_RED_HP_RETURN(1, s);
+					}
+					else
+					{
+						DELAY_N_SECONDS_WITH_NO_RED_HP_RETURN(2, s);
+					}
+					--n;
+				}
+				break;
+			}
+		}
+		//来红检查
+		if (check_red())
+		{
+			format_out_put(QString::fromLocal8Bit("来红!!!"), SECURITY_COLOR);
 			m_normalState = -1;
 			QPoint pt;
 			pt = m_configure.GetInstrumentPanelPos("Equipment 4");
 			l_click(pt);
 			return NOK;
 		}
-		if (check_hp())	//低血
+		//低血检查
+		if (check_hp())	
 		{
-			format_out_put(QString::fromLocal8Bit(" 低血!!!"));
+			format_out_put(QString::fromLocal8Bit("低血!!!"), SECURITY_COLOR);
 			m_normalState = -1;
 			QPoint pt;
 			pt = m_configure.GetInstrumentPanelPos("Equipment 4");
@@ -1000,6 +1166,13 @@ bool Scheme_1::find_locktarget(int * pos)
 	return ret;
 }
 
+bool Scheme_1::find_lockedtarget(int * pos)
+{
+	QPoint pt_si = m_configure.GetSelectItemPos();
+	bool ret = m_wnd->FindPicture(pt_si.x(), pt_si.y(), pt_si.x() + 150, pt_si.y() + 100, "pic/LockedTarget.bmp", pos, "000000", 0.7);
+	return ret;
+}
+
 bool Scheme_1::find_select_item(int * pos)
 {
 	return m_wnd->FindPicture(0, 0, m_wnd->GetWindowRect().right, m_wnd->GetWindowRect().bottom, "pic/select_item.bmp", pos, "000000", 0.7);
@@ -1052,6 +1225,65 @@ void Scheme_1::start_rerun_timer()
 
 bool Scheme_1::check_bubble()
 {
+	return false;
+}
+
+bool Scheme_1::check_web()
+{
+	bool ret = m_wnd->FindPicture(0, 0, m_wnd->GetWindowRect().right, m_wnd->GetWindowRect().bottom, "pic/网子无人区.bmp",nullptr,"000000",0.7);
+	return ret;
+}
+
+bool Scheme_1::find_web_overview(int * pos)
+{
+	QPoint pt = m_configure.GetOverviewPos();
+	bool ret = m_wnd->FindPicture(pt.x(), pt.y(), m_wnd->GetWindowRect().right, m_wnd->GetWindowRect().bottom, "pic/网子无人区.bmp",pos, "000000", 0.7);
+	return ret;
+}
+
+bool Scheme_1::check_broken()
+{
+	bool ret = m_wnd->FindPicture(0, 0, m_wnd->GetWindowRect().right, m_wnd->GetWindowRect().bottom, "pic/扰断无人机.bmp", nullptr, "000000", 0.7);
+	if (ret)
+		return true;
+	ret = m_wnd->FindPicture(0, 0, m_wnd->GetWindowRect().right, m_wnd->GetWindowRect().bottom, "pic/扰断.bmp", nullptr, "000000", 0.7);
+	if (ret)
+		return true;
+	ret = m_wnd->FindPicture(0, 0, m_wnd->GetWindowRect().right, m_wnd->GetWindowRect().bottom, "pic/扰频.bmp", nullptr, "000000", 0.7);
+	return ret;
+}
+
+bool Scheme_1::find_broken_overview(int * pos)
+{
+	QPoint pt = m_configure.GetOverviewPos();
+	bool ret = m_wnd->FindPicture(pt.x(), pt.y(), m_wnd->GetWindowRect().right, m_wnd->GetWindowRect().bottom, "pic/扰乱无人机总览.bmp", pos, "000000", 0.7);
+	if (ret)
+	{
+		pos[0] = pos[0] - 10;
+		pos[1] = pos[1] + 5;
+		return true;
+	}
+	ret = m_wnd->FindPicture(pt.x(), pt.y(), m_wnd->GetWindowRect().right, m_wnd->GetWindowRect().bottom, "pic/扰断总览.bmp", pos, "000000", 0.7);
+	if (ret)
+	{
+		pos[0] = pos[0] - 10;
+		pos[1] = pos[1] + 5;
+		return true;
+	}
+	ret = m_wnd->FindPicture(pt.x(), pt.y(), m_wnd->GetWindowRect().right, m_wnd->GetWindowRect().bottom, "pic/扰频总览.bmp", pos, "000000", 0.7);
+	if (ret)
+	{
+		pos[0] = pos[0] - 10;
+		pos[1] = pos[1] + 5;
+		return true;
+	}
+	ret = m_wnd->FindPicture(pt.x(), pt.y(), m_wnd->GetWindowRect().right, m_wnd->GetWindowRect().bottom, "pic/扰频总览2.bmp", pos, "000000", 0.7);
+	if (ret)
+	{
+		pos[0] = pos[0] - 10;
+		pos[1] = pos[1] + 5;
+		return true;
+	}
 	return false;
 }
 
@@ -1159,6 +1391,11 @@ void Scheme_1::close_popup_window()
 	{
 		l_click(pos[0] + 5, pos[1] + 3);
 	}
+	ret = m_wnd->FindPicture(0, 0, m_wnd->GetWindowRect().right, m_wnd->GetWindowRect().bottom, "pic/CloseComputer.bmp", pos, "000000", 0.7);
+	if (ret)
+	{
+		l_click(pos[0] + 5, pos[1] + 3);
+	}
 }
 
 bool Scheme_1::is_nothing_found()
@@ -1225,11 +1462,11 @@ bool Scheme_1::switch_overview_page(QString page)
 		return false;
 }
 
-void Scheme_1::format_out_put(QString  i)
+void Scheme_1::format_out_put(const QString& i,const QString& color)
 {
 	QString info;
 	info = m_roleName + i;
-	output(info);
+	output(info,color);
 }
 
 bool Scheme_1::check_stateMachine(int csm)
@@ -1246,19 +1483,19 @@ void Scheme_1::print_state_machine(int cs,int s)
 	{
 		/* 0-正常刷怪 1-意外情况之后回空间站 2-安全退出 3-暂停 4-释放控制权*/
 	case 0:
-		format_out_put(state_char[cs]+QString::fromLocal8Bit(" 响应正常刷怪事件"));
+		format_out_put(state_char[cs]+QString::fromLocal8Bit(" 响应正常刷怪事件"),USER_INPUT_EVENT_COLOR);
 		break;
 	case 1:
-		format_out_put(state_char[cs] + QString::fromLocal8Bit(" 响应回空间站事件"));
+		format_out_put(state_char[cs] + QString::fromLocal8Bit(" 响应回空间站事件"), USER_INPUT_EVENT_COLOR);
 		break;
 	case 2:
-		format_out_put(state_char[cs] + QString::fromLocal8Bit(" 响应安全退出事件"));
+		format_out_put(state_char[cs] + QString::fromLocal8Bit(" 响应安全退出事件"), USER_INPUT_EVENT_COLOR);
 		break;
 	case 3:
-		format_out_put(state_char[cs] + QString::fromLocal8Bit(" 响应暂停事件"));
+		format_out_put(state_char[cs] + QString::fromLocal8Bit(" 响应暂停事件"), USER_INPUT_EVENT_COLOR);
 		break;
 	case 4:
-		format_out_put(state_char[cs] + QString::fromLocal8Bit(" 响应释放控制权事件"));
+		format_out_put(state_char[cs] + QString::fromLocal8Bit(" 响应释放控制权事件"), USER_INPUT_EVENT_COLOR);
 		break;
 	default:
 		break;

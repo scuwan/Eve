@@ -22,36 +22,18 @@ public:
 	virtual void ReleaseControl() = 0;
 	virtual int GetLastError() = 0;
 	virtual QString SchemeName() = 0;
-	QString GetRole()
-	{
-		return m_roleName;
-	}
-	void GetInfo(QVector<QString>& i);
+	QString GetRole();
 	static void Init();
 private:
 	virtual void run() = 0;
 signals:
 	void eState(IScheme*, bool, int code);	    //执行状态
-	void newInfo(IScheme*);			//新的消息
+	void newInfo(const QString& info,const QString& color="#ffffff");			//新的消息
 	void quit(IScheme*);
-	public slots:
-	virtual void Run()
-	{
-		run();
-	}
+public slots:
+	virtual void Run();
 protected:
-	void output(QString &info)
-	{
-		QDateTime current_time = QDateTime::currentDateTime();
-		QString current_date = current_time.toString("yyyy.MM.dd hh:mm:ss.zzz ddd");
-		QString format_info = "[";
-		format_info.append(current_date);
-		format_info.append("] ");
-		format_info.append(info);
-		QMutexLocker locker(&m_mutex);
-		m_info.push_back(format_info);
-		emit newInfo(this);
-	}
+	void output(const QString &info, const QString& color = "#ffffff");
 protected:
 	QString m_roleName = "";
 	QString m_groupName = QString::fromLocal8Bit("默认组");
@@ -60,5 +42,4 @@ protected:
 private:
 	QVector<QString> m_info;
 	int flag = 1;
-	QMutex m_mutex;
 };

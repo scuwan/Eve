@@ -8,25 +8,23 @@ OutputInfo::OutputInfo(QWidget *parent)
 
 OutputInfo::~OutputInfo()
 {
+
 }
 
-void OutputInfo::Monitor(IScheme *scheme)
+void OutputInfo::StandOut(const QString & info,const QString& color)
 {
-	QVector<QString> info;
-	scheme->GetInfo(info);
-	for (int i = 0; i < info.size(); ++i)
-	{
-		print_info(info[i]);
-	}
+	print_info(info,color);
 }
 
-void OutputInfo::StandOut(const QString & info)
+void OutputInfo::print_info(const QString & info,const QString &color)
 {
-	print_info(info);
-}
-
-void OutputInfo::print_info(const QString & info)
-{
-	QString msg = "> ";
-	ui.textEdit->append(msg.append(info));
+	QString msg;
+	QString color_info = msg.append("<span style = \"color:");
+	color_info.append(color);
+	color_info.append(";\">");
+	color_info.append(">> ");
+	color_info.append(info);
+	color_info.append("</span>");
+	ui.textEdit->append(color_info);
+	ui.textEdit->moveCursor(QTextCursor::End);
 }

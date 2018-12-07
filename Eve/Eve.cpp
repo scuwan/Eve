@@ -61,7 +61,7 @@ Eve::Eve(QMainWindow *parent)
 	connect(rolesui, SIGNAL(restartRole(QString)), this, SLOT(restartRole(QString)));
 	connect(rolesui, SIGNAL(stopRole(QString)), this, SLOT(stopRole(QString)));
 	connect(rolesui, SIGNAL(releaseControl(QString)), this, SLOT(releaseControl(QString)));
-	connect(rolesui, SIGNAL(cmdInfo(const QString&)),cmdinfoui, SLOT(StandOut(const QString&)));
+	connect(rolesui, SIGNAL(cmdInfo(const QString&,const QString&)),cmdinfoui, SLOT(StandOut(const QString&,const QString&)));
 }
 
 void Eve::launchRole(QString role, QString scheme)
@@ -76,7 +76,7 @@ void Eve::launchRole(QString role, QString scheme)
 	connect(m_runtime.last()->scheme, SIGNAL(quit(IScheme*)), this, SLOT(quit(IScheme*)));
 	connect(m_runtime.last()->scheme, SIGNAL(eState(IScheme*,bool,int)), this, SLOT(cmdBack(IScheme*,bool,int)));
 	int index = role_index_of_info(role);
-	connect(m_runtime.last()->scheme, SIGNAL(newInfo(IScheme*)), m_roleinfodocks[index].m_roleinfoui, SLOT(Monitor(IScheme*)));
+	connect(m_runtime.last()->scheme, SIGNAL(newInfo(const QString&,const QString&)), m_roleinfodocks[index].m_roleinfoui, SLOT(StandOut(const QString&,const QString&)));
 	m_runtime.last()->thread->start();
 	rolesui->setThreadId(role,(int)m_runtime.last()->thread->currentThreadId());
 	m_runtime.last()->scheme->Start();
