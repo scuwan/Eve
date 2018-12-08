@@ -101,6 +101,12 @@ Scheme_1::~Scheme_1()
 
 void Scheme_1::SafeExit()
 {
+	if (m_timer != nullptr)
+	{
+		m_timer->stop();
+		delete m_timer;
+		m_timer = nullptr;
+	}
 	if (m_stateMachine == -1)
 	{
 		emit eState(this, true, 0);
@@ -112,6 +118,12 @@ void Scheme_1::SafeExit()
 
 void Scheme_1::SafePause()
 {
+	if (m_timer != nullptr)
+	{
+		m_timer->stop();
+		delete m_timer;
+		m_timer = nullptr;
+	}
 	if (m_stateMachine == -1)
 	{
 		emit eState(this, true, 1);
@@ -122,12 +134,24 @@ void Scheme_1::SafePause()
 
 void Scheme_1::Start()
 {
+	if (m_timer != nullptr)
+	{
+		m_timer->stop();
+		delete m_timer;
+		m_timer = nullptr;
+	}
 	m_stateMachine = 0;
 	emit start();
 }
 
 void Scheme_1::ReleaseControl()
 {
+	if (m_timer != nullptr)
+	{
+		m_timer->stop();
+		delete m_timer;
+		m_timer = nullptr;
+	}
 	if (m_stateMachine == -1)
 	{
 		emit eState(this, true, 3);
@@ -211,6 +235,7 @@ int Scheme_1::safe_back_station(int s)
 				{
 					return OK;
 				}
+				--n;
 			}
 		}
 		else //找不到空间站
@@ -230,6 +255,7 @@ int Scheme_1::safe_back_station(int s)
 					{
 						return OK;
 					}
+					--n;
 				}
 			}
 		}
@@ -245,6 +271,7 @@ int Scheme_1::safe_back_station(int s)
 			{
 				return OK;
 			}
+			--n;
 		}
 	}
 	format_out_put(QString::fromLocal8Bit(" 回空间站失败."));
@@ -653,13 +680,13 @@ int Scheme_1::normal(int s=0)
 		//网子检查
 		if (check_web())
 		{
-			format_out_put(QString::fromLocal8Bit("检查到网子,打掉它"));
 			switch_overview_page("刷怪");
 			DELAY_N_SECONDS_WITH_NO_RED_HP_RETURN(1, s);
 			int pos[2] = { 0,0 };
 			bool ret = find_web_overview(pos);
 			if (ret)
 			{
+				format_out_put(QString::fromLocal8Bit("检查到网子,打掉它"),"#55ffff");
 				l_click(pos[0], pos[1]);
 				DELAY_N_SECONDS_WITH_NO_RED_HP_RETURN(1, s);
 				int n = 5;
@@ -698,7 +725,7 @@ int Scheme_1::normal(int s=0)
 			bool ret = find_web_overview(pos);
 			if (ret)
 			{
-				format_out_put(QString::fromLocal8Bit("检查到网子,打掉它"));
+				format_out_put(QString::fromLocal8Bit("检查到网子,打掉它"),"#55ffff");
 				l_click(pos[0], pos[1]);
 				DELAY_N_SECONDS_WITH_NO_RED_HP_RETURN(1, s);
 				int n = 5;
@@ -734,7 +761,7 @@ int Scheme_1::normal(int s=0)
 		//检查扰断
 		if (check_broken())
 		{
-			format_out_put(QString::fromLocal8Bit("检查到扰断,打掉它"));
+			format_out_put(QString::fromLocal8Bit("检查到扰断,打掉它"),"#55ffff");
 			switch_overview_page("刷怪");
 			DELAY_N_SECONDS_WITH_NO_RED_HP_RETURN(1, s);
 			int pos[2] = {0,0};
@@ -779,7 +806,7 @@ int Scheme_1::normal(int s=0)
 			bool ret = find_broken_overview(pos);
 			if (ret)
 			{
-				format_out_put(QString::fromLocal8Bit("检查到扰断,打掉它"));
+				format_out_put(QString::fromLocal8Bit("检查到扰断,打掉它"),"#55ffff");
 				l_click(pos[0], pos[1]);
 				DELAY_N_SECONDS_WITH_NO_RED_HP_RETURN(1, s);
 				int n = 5;
@@ -910,6 +937,22 @@ int Scheme_1::return_drones_to_bay(int s)
 	{
 		return OK;	//操作执行成功
 	}
+	QPoint pt = m_configure.GetDronesPos("Base");
+	int pos[2];
+	bool ret = m_wnd->FindPicture(pt.x(), pt.y(), m_wnd->GetWindowRect().right, m_wnd->GetWindowRect().bottom, "pic/Drones_in_Bay_2.bmp", pos, "000000", 0.8);
+	if (ret)
+	{
+		//pt = m_configure.GetDronesPos("Drones in Bay");
+		l_click(pos[0]+50,pos[1]+5);
+		DELAY_N_SECONDS_WITH_NO_RED_HP_RETURN(1, s);
+	}
+	ret = m_wnd->FindPicture(pt.x(),pt.y(), m_wnd->GetWindowRect().right, m_wnd->GetWindowRect().bottom, "pic/Drones_in_Space_1.bmp", pos, "000000", 0.8);
+	if (ret)
+	{
+		//pt = m_configure.GetDronesPos("Drones in Bay");
+		l_click(pos[0] + 50, pos[1] + 5);
+		DELAY_N_SECONDS_WITH_NO_RED_HP_RETURN(1, s);
+	}
 	if (is_drone_in_space())
 	{
 		//判断Drones in Bay是否展开，若展开就收起
@@ -919,7 +962,7 @@ int Scheme_1::return_drones_to_bay(int s)
 		{
 			pt = m_configure.GetDronesPos("Drones in Bay");
 			l_click(pt);
-			Sleep(1000);
+			DELAY_N_SECONDS_WITH_NO_RED_HP_RETURN(1, s);
 		}
 		pt = m_configure.GetDronesPos("Drones in Local Space");
 		QPoint pt1 = m_configure.GetDronesLocalSpacePos("Return to Drone Bay");
@@ -928,7 +971,7 @@ int Scheme_1::return_drones_to_bay(int s)
 		Sleep(1000);
 		l_click(pt1);
 		m_wnd->LockInput(0);
-		DELAY_N_SECONDS_WITH_NO_RED_HP_RETURN(5, s);
+		DELAY_N_SECONDS_WITH_NO_RED_HP_RETURN(8, s);
 		int n = 15;
 		while (n>0)
 		{
@@ -1017,7 +1060,9 @@ bool Scheme_1::is_drone_in_space()
 	//判红,绿，黄
 	std::string r = m_wnd->FindColorEx(pt.x(), pt.y(), m_wnd->GetWindowRect().right, m_wnd->GetWindowRect().bottom, "F80000-000000|F40000-000000|00F400-000000|00F800-000000|F4F400-000000|FFFF00-000000|E1E101-000000|F5F500-000000");
 	if (r.size() == 0)
+	{
 		return false;
+	}
 	else
 		return true;
 }
@@ -1308,10 +1353,10 @@ bool Scheme_1::check_hp()
 {
 	QPoint pt_panel = m_configure.GetInstrumentPanelPos();
 	int p_hp[2];
-	p_hp[0] = pt_panel.x() + 36;
-	p_hp[1] = pt_panel.y() - 65;	//甲抗
-	//p_hp[0] = pt_panel.x() - 11;
-	//p_hp[1] = pt_panel.y() - 30;	//顿抗
+	//p_hp[0] = pt_panel.x() + 36;
+	//p_hp[1] = pt_panel.y() - 65;	//甲抗
+	p_hp[0] = pt_panel.x() - 11;
+	p_hp[1] = pt_panel.y() - 30;	//盾抗
 	if (m_wnd->FindColor(p_hp[0], p_hp[1], p_hp[0] + 5, p_hp[1] + 3, "FF1F1F-000000"))
 		return true;
 	if (m_wnd->FindColor(p_hp[0], p_hp[1], p_hp[0] + 5, p_hp[1] + 3, "FF1E1E-000000"))

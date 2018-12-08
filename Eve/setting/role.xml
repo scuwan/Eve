@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <roles>
 <role>
 	<name>Jthree Robert</name>
@@ -10,6 +10,10 @@
 </role>	
 <role>
 	<name>Diss Mission</name>
+	<scheme>方案1</scheme>
+</role>	
+<role>
+	<name>Choose MePlz</name>
 	<scheme>方案1</scheme>
 </role>	
 </roles>
