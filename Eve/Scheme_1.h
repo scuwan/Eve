@@ -111,8 +111,10 @@ private:
 	void print_state_machine(int cs,int s);
 signals:
 	void start();
+	void stop_timer();
 private slots:
 	void rerun_timeout();
+	void stop_timer_slot();
 private:
 	int m_state=0;
 	int m_stateMachine = 0;	/* 0-正常刷怪 1-意外情况之后回空间站 2-安全退出 3-暂停 4-释放控制权*/
@@ -123,5 +125,6 @@ private:
 	RoleConfigure m_configure;
 	QTimer *m_timer=nullptr;
 	QVector<quint64> m_redtime;	//来红的时间
+	QMutex m_tMutex;
 };
 

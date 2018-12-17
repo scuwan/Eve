@@ -92,16 +92,6 @@ void GrabExecute::GrabWindowRequest(const int wid, const QString role)
 			qDebug() << QString::fromLocal8Bit("创建文件夹失败 ") << path;
 		}
 	}
-		
-	QDateTime current_time = QDateTime::currentDateTime();
-	QString current_date = current_time.toString("yyyy.MM.dd hh.mm.ss.zzz ddd");
-	path.append("/");
-	path.append(current_date);
-	if (!dir.mkpath(path))
-	{
-		ret = false;
-		qDebug() << QString::fromLocal8Bit("创建文件夹失败 ") << path;
-	}
 	if (!ret)
 	{
 		path = "./grab";
@@ -109,7 +99,17 @@ void GrabExecute::GrabWindowRequest(const int wid, const QString role)
 	
 	if (m_wids.constFind(wid) == m_wids.constEnd())
 	{
-		m_wids.insert(wid, RoleDir(role,path));
+		QDateTime current_time = QDateTime::currentDateTime();
+		QString current_date = current_time.toString("yyyy.MM.dd hh.mm.ss.zzz ddd");
+		path.append("/");
+		path.append(current_date);
+		if (!dir.mkpath(path))
+		{
+			ret = false;
+			qDebug() << QString::fromLocal8Bit("创建文件夹失败 ") << path;
+		}
+		else
+			m_wids.insert(wid, RoleDir(role,path));
 	}
 	m_tcnt = 600;
 	if (!m_timer->isActive())

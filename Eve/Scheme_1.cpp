@@ -128,20 +128,19 @@ Scheme_1::Scheme_1(QString role)
 {
 	m_roleName = role;
 	connect(this, SIGNAL(start()), this, SLOT(Run()));
+	connect(this, SIGNAL(stop_timer()), this, SLOT(stop_timer_slot()));
 }
 
 
 Scheme_1::~Scheme_1()
 {
-	if(m_timer!=nullptr)
-		m_timer->stop();
+
 }
 
 
 void Scheme_1::SafeExit()
 {
-	if(m_timer!=nullptr)
-		m_timer->stop();
+	emit stop_timer();
 	if (m_stateMachine == -1)
 	{
 		emit eState(this, true, 0);
@@ -153,8 +152,7 @@ void Scheme_1::SafeExit()
 
 void Scheme_1::SafePause()
 {
-	if(m_timer!=nullptr)
-		m_timer->stop();
+	emit stop_timer();
 	if (m_stateMachine == -1)
 	{
 		emit eState(this, true, 1);
@@ -165,16 +163,14 @@ void Scheme_1::SafePause()
 
 void Scheme_1::Start()
 {
-	if(m_timer!=nullptr)
-		m_timer->stop();
+	emit stop_timer();
 	m_stateMachine = 0;
 	emit start();
 }
 
 void Scheme_1::ReleaseControl()
 {
-	if(m_timer!=nullptr)
-		m_timer->stop();
+	emit stop_timer();
 	if (m_stateMachine == -1)
 	{
 		emit eState(this, true, 3);
@@ -1813,6 +1809,18 @@ void Scheme_1::print_state_machine(int cs,int s)
 		break;
 	default:
 		break;
+	}
+}
+
+void Scheme_1::stop_timer_slot()
+{
+	QMutexLocker locker(&m_tMutex);
+	if (m_timer != nullptr)
+	{
+		if (m_timer->isActive())
+		{
+			m_timer->stop();
+		}
 	}
 }
 
