@@ -119,6 +119,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
       </PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="GrabWindowAbnormalCondition.cpp" />
     <ClCompile Include="IconFont.cpp" />
     <ClCompile Include="IScheme.cpp" />
     <ClCompile Include="LwIWnd.cpp" />
@@ -159,6 +160,12 @@
     <ClInclude Include="GeneratedFiles\ui_OutputInfo.h" />
     <ClInclude Include="GeneratedFiles\ui_QUnitt.h" />
     <ClInclude Include="GeneratedFiles\ui_Rolelist.h" />
+    <QtMoc Include="GrabWindowAbnormalCondition.h">
+      <IncludePath Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">.\GeneratedFiles;.;$(QTDIR)\include;.\GeneratedFiles\$(ConfigurationName)\.;$(QTDIR)\include\QtCore;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtANGLE;$(QTDIR)\include\QtWidgets;$(QTDIR)\include\QtConcurrent;$(QTDIR)\include\QtXml</IncludePath>
+      <Define Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">UNICODE;_UNICODE;WIN32;WIN64;QT_DLL;QT_CORE_LIB;QT_GUI_LIB;QT_WIDGETS_LIB;QT_CONCURRENT_LIB;QT_XML_LIB</Define>
+      <IncludePath Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">.\GeneratedFiles;.;$(QTDIR)\include;.\GeneratedFiles\$(ConfigurationName)\.;$(QTDIR)\include\QtCore;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtANGLE;$(QTDIR)\include\QtWidgets;$(QTDIR)\include\QtConcurrent;$(QTDIR)\include\QtXml</IncludePath>
+      <Define Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">UNICODE;_UNICODE;WIN32;WIN64;QT_DLL;QT_NO_DEBUG;NDEBUG;QT_CORE_LIB;QT_GUI_LIB;QT_WIDGETS_LIB;QT_CONCURRENT_LIB;QT_XML_LIB</Define>
+    </QtMoc>
     <ClInclude Include="IconFont.h" />
     <ClInclude Include="IWnd.h" />
     <ClInclude Include="LwIWnd.h" />

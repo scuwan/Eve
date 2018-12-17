@@ -20,7 +20,7 @@ bool LwIWnd::Attch(int w)
 	is_ok = pGetRes.CoCreateInstance(clsid);
 	if (is_ok)
 		return false;
-	if (0 == pGetRes->BindWindow(w, 4, 3, 3, 0, 0))
+	if (0 == pGetRes->BindWindow(w, 4, 3, 3, 64+256, 0))
 	{
 		pGetRes.Release();
 		return false;

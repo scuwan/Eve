@@ -30,10 +30,12 @@ signals:
 	void eState(IScheme*, bool, int code);	    //执行状态
 	void newInfo(const QString& info,const QString& color="#ffffff");			//新的消息
 	void quit(IScheme*);
+	void GrabWindowRequest(const int wid, const QString role);
 public slots:
 	virtual void Run();
 protected:
 	void output(const QString &info, const QString& color = "#ffffff");
+	void grab(int id,QString role);
 protected:
 	QString m_roleName = "";
 	QString m_groupName = QString::fromLocal8Bit("默认组");

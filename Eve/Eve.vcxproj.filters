@@ -69,6 +69,9 @@
     <ClCompile Include="IScheme.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="GrabWindowAbnormalCondition.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="Eve.h">
@@ -90,6 +93,9 @@
       <Filter>Header Files</Filter>
     </QtMoc>
     <QtMoc Include="OutputInfo.h">
+      <Filter>Header Files</Filter>
+    </QtMoc>
+    <QtMoc Include="GrabWindowAbnormalCondition.h">
       <Filter>Header Files</Filter>
     </QtMoc>
   </ItemGroup>

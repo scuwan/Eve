@@ -19,7 +19,7 @@ public:
 	int GetLastError();
 	virtual QString SchemeName();
 private:
-	enum {OK=-1,NOK=-2};
+	enum {OK=-1,NOK=-2,RED=-3,LOW_HP=-4,RED_WITHSTAND=-5/*来红对抗*/};
 	virtual void run();
 	//安全回空间站
 	int safe_back_station(int s);
@@ -71,8 +71,16 @@ private:
 	bool find_broken_overview(int *pos);
 	//检查是否来红
 	bool check_red();
+	//检查是否执行来红对抗,在空间页面
+	bool check_red_withstand(int *pos=nullptr);
+	//对抗逻辑
+	int withstand(int s);
 	//检查低血
 	bool check_hp();
+	//低血处理
+	int low_hp_process(int s=6);
+	//修理
+	int try_repair(int s);
 	//检查Tethered
 	bool check_tethered();
 	//打开异常界面
@@ -114,5 +122,6 @@ private:
 	int m_errorCode =0;
 	RoleConfigure m_configure;
 	QTimer *m_timer=nullptr;
+	QVector<quint64> m_redtime;	//来红的时间
 };
 

@@ -9,6 +9,7 @@
 #include "OutputInfo.h"
 #include "Rolelist.h"
 #include "IScheme.h"
+#include "GrabWindowAbnormalCondition.h"
 class Eve : public QMainWindow
 {
 	Q_OBJECT
@@ -66,4 +67,5 @@ private:
 		OutputInfo* m_roleinfoui =nullptr;
 	};
 	QVector<RoleInfoWindow> m_roleinfodocks;
+	GrabWindowAbnormalCondition *m_grab = nullptr;
 };

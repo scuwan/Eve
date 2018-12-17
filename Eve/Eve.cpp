@@ -9,6 +9,7 @@ Eve::Eve(QMainWindow *parent)
 {
 	m_runtime.reserve(128);
 	ui.setupUi(this);
+	m_grab = new GrabWindowAbnormalCondition(this);
 	IScheme::Init();
 	/* splitter layout*/
 	/*QVBoxLayout *layout = new QVBoxLayout(this);
@@ -77,6 +78,7 @@ void Eve::launchRole(QString role, QString scheme)
 	connect(m_runtime.last()->scheme, SIGNAL(eState(IScheme*,bool,int)), this, SLOT(cmdBack(IScheme*,bool,int)));
 	int index = role_index_of_info(role);
 	connect(m_runtime.last()->scheme, SIGNAL(newInfo(const QString&,const QString&)), m_roleinfodocks[index].m_roleinfoui, SLOT(StandOut(const QString&,const QString&)));
+	connect(m_runtime.last()->scheme, SIGNAL(GrabWindowRequest(const int, const QString)), m_grab, SLOT(GrabWindowRequest(const int, const QString)),Qt::QueuedConnection);
 	m_runtime.last()->thread->start();
 	rolesui->setThreadId(role,(int)m_runtime.last()->thread->currentThreadId());
 	m_runtime.last()->scheme->Start();

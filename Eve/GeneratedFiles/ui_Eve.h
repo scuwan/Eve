@@ -33,6 +33,11 @@ public:
         if (MainWindow->objectName().isEmpty())
             MainWindow->setObjectName(QStringLiteral("MainWindow"));
         MainWindow->resize(800, 531);
+        QIcon icon;
+        icon.addFile(QStringLiteral("pic/wicon.png"), QSize(), QIcon::Normal, QIcon::Off);
+        MainWindow->setWindowIcon(icon);
+        MainWindow->setWindowOpacity(0.8);
+        MainWindow->setIconSize(QSize(48, 48));
         centralwidget = new QWidget(MainWindow);
         centralwidget->setObjectName(QStringLiteral("centralwidget"));
         MainWindow->setCentralWidget(centralwidget);

@@ -51,7 +51,9 @@ namespace
 		{203,-7},	/*Equipment 1*/
 		{178,38},	/*Equipemnt 2*/
 		{228,38},	/*Equipemnt 3*/
-		{255,-7}	/*Equipemnt 4*/
+		{255,-7},	/*Equipemnt 4*/
+		{-23,-88},	/*hp_lefttop*/
+		{141,-6}	/*hp_rightbuttom*/
 	};
 	const int probe_scanner_wrap_to_within_o[][2]=
 	{
@@ -124,11 +126,14 @@ QPoint RoleConfigure::GetInstrumentPanelPos(QString key)
 {
 	//const int instrument_panel_o[][2] =
 	//{
-	//	{ 10,27 },	/*Stop The Ship*/
-	//	{ 103,27 },	/*Set Full Speed*/
-	//	{ 203,-7 },	/*Equipment 1*/
-	//	{ 178,38 },	/*Equipemnt 2*/
-	//	{ 228,38 }	/*Equipemnt 3*/
+	//{10, 27},	/*Stop The Ship*/
+	//{ 103,27 },	/*Set Full Speed*/
+	//{ 203,-7 },	/*Equipment 1*/
+	//{ 178,38 },	/*Equipemnt 2*/
+	//{ 228,38 },	/*Equipemnt 3*/
+	//{ 255,-7 },	/*Equipemnt 4*/
+	//{ -23,-88 },	/*hp_lefttop*/
+	//{ 141,-6 }	/*hp_rightbuttom*/
 	//}
 	if (key == "Base")
 		return m_posInstrumentPanel;
@@ -160,6 +165,16 @@ QPoint RoleConfigure::GetInstrumentPanelPos(QString key)
 	else if (key == "Equipment 4")
 	{
 		QPoint pt(m_posInstrumentPanel.x() + instrument_panel_o[5][0], m_posInstrumentPanel.y() + instrument_panel_o[5][1]);
+		return pt;
+	}
+	else if (key == "hp_lefttop")
+	{
+		QPoint pt(m_posInstrumentPanel.x() + instrument_panel_o[6][0], m_posInstrumentPanel.y() + instrument_panel_o[6][1]);
+		return pt;
+	}
+	else if (key == "hp_rightbuttom")
+	{
+		QPoint pt(m_posInstrumentPanel.x() + instrument_panel_o[7][0], m_posInstrumentPanel.y() + instrument_panel_o[7][1]);
 		return pt;
 	}
 	else

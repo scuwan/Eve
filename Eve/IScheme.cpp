@@ -42,3 +42,8 @@ void IScheme::output(const QString &info, const QString& color)
 	format_info.append(info);
 	emit newInfo(format_info, color);
 }
+
+void IScheme::grab(int id,QString role)
+{
+	emit GrabWindowRequest(id, role);
+}
