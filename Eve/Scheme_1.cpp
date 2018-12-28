@@ -925,9 +925,9 @@ int Scheme_1::normal(int s=0)
 				if (is_nothing_found())
 				{
 					grab(m_wnd->GetWindowId(), GetRole());
-					QPoint pt;
+					/*QPoint pt;
 					pt = m_configure.GetInstrumentPanelPos("Equipment 4");
-					l_click(pt);
+					l_click(pt);*/
 					bool ret = return_drones_to_bay(s);
 					DELAY_N_SECONDS_RETURN(3, s);
 
