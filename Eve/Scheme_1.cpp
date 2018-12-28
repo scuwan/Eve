@@ -238,11 +238,11 @@ int Scheme_1::safe_back_station(int s)
 			//DELAY_N_SECONDS_WITH_RED_WITHSTAND(2, s);	//延时2s
 			pt = m_configure.GetStationItemPos("Wrap to with 0 m");
 			l_click(pt);
-			DELAY_N_SECONDS_WITH_RED_WITHSTAND(5, s);
+			/*DELAY_N_SECONDS_WITH_RED_WITHSTAND(5, s);
 			QPoint pt1;
 			pt1 = m_configure.GetInstrumentPanelPos("Equipment 4");
 			l_click(pt1);
-			format_out_put(QString::fromLocal8Bit(" 关闭推子"));
+			format_out_put(QString::fromLocal8Bit(" 关闭推子"));*/
 			int n = 60;
 			while (n > 0)
 			{
@@ -492,6 +492,7 @@ int Scheme_1::normal(int s=0)
 				//如果找不到异常，返回
 				if (!ret)
 				{
+					close_probe_scanner();
 					format_out_put(QString::fromLocal8Bit("找不到异常."));
 					return NOK;
 				}
@@ -1038,6 +1039,10 @@ int Scheme_1::return_drones_to_bay(int s)
 			l_click(pt2);
 		}
 		DELAY_N_SECONDS_WITH_RED_WITHSTAND(8, s);
+		QPoint pt3;
+		pt3 = m_configure.GetInstrumentPanelPos("Equipment 4");
+		l_click(pt3);
+		format_out_put(QString::fromLocal8Bit(" 关闭推子"));
 		int n = 20;
 		while (n>0)
 		{
