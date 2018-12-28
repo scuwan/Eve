@@ -318,7 +318,7 @@ int Scheme_1::safe_leave_station(int s)
 			//grab(m_wnd->GetWindowId(), GetRole());
 			m_redtime.push_back(QDateTime::currentDateTime().toSecsSinceEpoch());
 			format_out_put(QString::fromLocal8Bit(" 来红，拒绝出站请求."));
-			return NOK;	//有红
+			return RED;	//有红
 		}
 		QPoint pt = m_configure.GetUndockPos();
 		l_click(pt);
@@ -459,9 +459,11 @@ int Scheme_1::normal(int s=0)
 				format_out_put(QString::fromLocal8Bit(" 出站操作异常，拒绝出站请求."));
 				return NOK;
 			}
-			else	//出站操作异常
+			else if(ret == RED)	//来红
 			{
-				;//print_state_machine(ret);
+				grab(m_wnd->GetWindowId(), GetRole());
+				format_out_put(QString::fromLocal8Bit(" 出站操作异常，拒绝出站请求."));
+				return RED;
 			}
 		}
 		else
