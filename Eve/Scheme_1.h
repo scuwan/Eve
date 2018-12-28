@@ -59,7 +59,7 @@ private:
 	//鼠标右键点击
 	void r_click(QPoint pt);
 	void r_click(int x, int y);
-	//重新刷怪定时器 5分钟
+	//重新刷怪定时器 n分钟
 	void start_rerun_timer();
 	//检查是否有泡泡
 	bool check_bubble();
@@ -109,6 +109,8 @@ private:
 	bool check_stateMachine(int csm);
 	//用户命令输入打印
 	void print_state_machine(int cs,int s);
+	//判断是否是蛋
+	bool is_an_egg();
 signals:
 	void start();
 	void stop_timer();

@@ -234,8 +234,8 @@ int Scheme_1::safe_back_station(int s)
 			l_click(pos[0], pos[1]);
 			DELAY_N_SECONDS_WITH_RED_WITHSTAND(1, s);
 			QPoint pt = m_configure.GetStationItemPos("Approach");
-			l_click(pt);
-			DELAY_N_SECONDS_WITH_RED_WITHSTAND(2, s);	//延时2s
+			//l_click(pt);
+			//DELAY_N_SECONDS_WITH_RED_WITHSTAND(2, s);	//延时2s
 			pt = m_configure.GetStationItemPos("Wrap to with 0 m");
 			l_click(pt);
 			DELAY_N_SECONDS_WITH_RED_WITHSTAND(5, s);
@@ -442,6 +442,12 @@ int Scheme_1::normal(int s=0)
 			if (ret == OK)
 			{
 				format_out_put(QString::fromLocal8Bit(" 成功出站，并开启模块."));
+				if (is_an_egg())
+				{
+					format_out_put(QString::fromLocal8Bit(" 你是一只蛋，退出脚本."));
+					m_stateMachine = 2;
+					return OK;
+				}
 				ret=try_repair(s);
 				if (RED == ret)
 					return RED;
@@ -985,6 +991,9 @@ int Scheme_1::normal(int s=0)
 int Scheme_1::return_drones_to_bay(int s)
 {
 	LockWindow t(m_wnd);
+	//如果是蛋直接返回成功
+	if (is_an_egg())
+		return OK;
 	if (is_in_space())
 	{
 		return OK;	//操作执行成功
@@ -1021,7 +1030,14 @@ int Scheme_1::return_drones_to_bay(int s)
 		r_click(pt);
 		Sleep(1000);
 		l_click(pt1);
-		DELAY_N_SECONDS_WITH_RED_WITHSTAND(10, s);
+		if (find_station(pos)) //空间站
+		{
+			l_click(pos[0], pos[1]);
+			DELAY_N_SECONDS_WITH_RED_WITHSTAND(1, s);
+			QPoint pt2 = m_configure.GetStationItemPos("Approach");
+			l_click(pt2);
+		}
+		DELAY_N_SECONDS_WITH_RED_WITHSTAND(8, s);
 		int n = 20;
 		while (n>0)
 		{
@@ -1312,8 +1328,8 @@ void Scheme_1::start_rerun_timer()
 	quint64 currnt_time = QDateTime::currentDateTime().toMSecsSinceEpoch();
 	for (int i = 0; i < m_redtime.size(); ++i)
 	{
-		//计算1小时之内来的红的次数
-		if (currnt_time - m_redtime[i] <= 3600)
+		//计算2小时之内来的红的次数
+		if (currnt_time - m_redtime[i] <= 3600*2)
 		{
 			reds_in_hour = m_redtime.size() - i;
 			break;
@@ -1330,10 +1346,10 @@ void Scheme_1::start_rerun_timer()
 	quint64 sces = 2 * 60 * 1000;
 	quint64 sces_inc = 0;
 	qsrand(QTime(0, 0, 0).secsTo(QTime::currentTime()));
-	sces_inc = (qrand() % (reds_in_hour*5)) * 60 * 1000;
+	sces_inc += (qrand() % (reds_in_hour*5)) * 60 * 1000;
 	if (reds_15_min > 0)
 	{
-		sces_inc = (qrand() % (reds_15_min * 20)) * 60 * 1000;
+		sces_inc += (qrand() % (reds_15_min * 30)) * 60 * 1000;
 	}
 	sces = sces + sces_inc;
 	if (m_timer == nullptr)
@@ -1341,7 +1357,7 @@ void Scheme_1::start_rerun_timer()
 		m_timer = new QTimer(this);
 		connect(m_timer, SIGNAL(timeout()), this, SLOT(rerun_timeout()));
 	}
-	format_out_put(QString::fromLocal8Bit("重启定时器 ") + QString::number(sces / 60)+QString::fromLocal8Bit(" 分钟..."), "#ffff00");
+	format_out_put(QString::fromLocal8Bit("重启定时器 ") + QString::number(sces / 60/1000)+QString::fromLocal8Bit(" 分钟..."), "#ffff00");
 	m_timer->start(sces);
 }
 
@@ -1360,6 +1376,14 @@ bool Scheme_1::find_web_overview(int * pos)
 {
 	QPoint pt = m_configure.GetOverviewPos();
 	bool ret = m_wnd->FindPicture(pt.x(), pt.y(), m_wnd->GetWindowRect().right, m_wnd->GetWindowRect().bottom, "pic/网子无人区总览.bmp",pos, "000000", 0.7);
+	if (ret)
+	{
+		if (pos != nullptr)
+		{
+			pos[0] = pos[0] - 10;
+			pos[1] = pos[1] + 5;
+		}
+	}
 	return ret;
 }
 
@@ -1381,29 +1405,41 @@ bool Scheme_1::find_broken_overview(int * pos)
 	bool ret = m_wnd->FindPicture(pt.x(), pt.y(), m_wnd->GetWindowRect().right, m_wnd->GetWindowRect().bottom, "pic/扰乱无人机总览.bmp", pos, "000000", 0.7);
 	if (ret)
 	{
-		pos[0] = pos[0] - 10;
-		pos[1] = pos[1] + 5;
+		if (pos != nullptr)
+		{
+			pos[0] = pos[0] - 10;
+			pos[1] = pos[1] + 5;
+		}
 		return true;
 	}
 	ret = m_wnd->FindPicture(pt.x(), pt.y(), m_wnd->GetWindowRect().right, m_wnd->GetWindowRect().bottom, "pic/扰断总览.bmp", pos, "000000", 0.7);
 	if (ret)
 	{
-		pos[0] = pos[0] - 10;
-		pos[1] = pos[1] + 5;
+		if (pos != nullptr)
+		{
+			pos[0] = pos[0] - 10;
+			pos[1] = pos[1] + 5;
+		}
 		return true;
 	}
 	ret = m_wnd->FindPicture(pt.x(), pt.y(), m_wnd->GetWindowRect().right, m_wnd->GetWindowRect().bottom, "pic/扰频总览.bmp", pos, "000000", 0.7);
 	if (ret)
 	{
-		pos[0] = pos[0] - 10;
-		pos[1] = pos[1] + 5;
+		if (pos != nullptr)
+		{
+			pos[0] = pos[0] - 10;
+			pos[1] = pos[1] + 5;
+		}
 		return true;
 	}
 	ret = m_wnd->FindPicture(pt.x(), pt.y(), m_wnd->GetWindowRect().right, m_wnd->GetWindowRect().bottom, "pic/扰频总览2.bmp", pos, "000000", 0.7);
 	if (ret)
 	{
-		pos[0] = pos[0] - 10;
-		pos[1] = pos[1] + 5;
+		if (pos != nullptr)
+		{
+			pos[0] = pos[0] - 10;
+			pos[1] = pos[1] + 5;
+		}
 		return true;
 	}
 	return false;
@@ -1437,7 +1473,7 @@ bool Scheme_1::check_red()
 
 bool Scheme_1::check_red_withstand(int *pos)
 {
-	switch_overview_page("空间");
+	/*switch_overview_page("空间");
 	Sleep(500);
 	QPoint pt_o = m_configure.GetOverviewPos();
 	QPoint pt_drones = m_configure.GetDronesPos();
@@ -1449,7 +1485,15 @@ bool Scheme_1::check_red_withstand(int *pos)
 		pos[0] = pos[0] + 10;
 		pos[1] = pos[1] + 4;
 	}
-	return ret;
+	return ret;*/
+	if (check_broken())
+	{
+		switch_overview_page("刷怪");
+		DELAY_N_SECONDS_WITH_NO_RED_HP_RETURN(1, m_stateMachine);
+		bool ret=find_broken_overview(pos);
+		return ret;
+	}
+	return false;
 }
 
 int Scheme_1::withstand(int s)
@@ -1458,7 +1502,7 @@ int Scheme_1::withstand(int s)
 	int pos[2] = {0,0};
 	lanch_drones(s);
 	//环绕建筑物
-	if (check_building(pos))
+	/*if (check_building(pos))
 	{
 		format_out_put(QString::fromLocal8Bit(" 探测到可环绕建筑物，并环绕..."));
 		l_click(pos[0] + 10, pos[1] + 2);
@@ -1480,48 +1524,63 @@ int Scheme_1::withstand(int s)
 			}
 		}
 		orbit = 1;
-	}
-	QPoint pt_one = m_configure.GetOverviewFirstItem();
-	if (0 == orbit)
+	}*/
+	//QPoint pt_one = m_configure.GetOverviewFirstItem();
+	//if (0 == orbit)
+	//{
+	//	switch_overview_page("残骸");
+	//	DELAY_N_SECONDS_WITH_NO_RED_HP_RETURN(1, s);
+	//	if (!is_nothing_found())	//环绕残骸
+	//	{
+	//		l_click(pt_one);
+	//		DELAY_N_SECONDS_RETURN(1, s);
+	//		if (find_orbit(pos))
+	//		{
+	//			l_click(pos[0] + 5, pos[1] + 2);
+	//			format_out_put(QString::fromLocal8Bit(" 环绕残骸成功,切换到刷怪界面."));
+	//		}
+	//	}
+	//	else //环绕怪
+	//	{
+	//		switch_overview_page("刷怪");
+	//		DELAY_N_SECONDS_WITH_NO_RED_HP_RETURN(1, s);
+	//		if (!is_nothing_found())	//环绕残骸
+	//		{
+	//			l_click(pt_one);
+	//			DELAY_N_SECONDS_RETURN(1, s);
+	//			if (find_orbit(pos))
+	//			{
+	//				l_click(pos[0] + 5, pos[1] + 2);
+	//				format_out_put(QString::fromLocal8Bit(" 环绕残骸成功,切换到刷怪界面."));
+	//			}
+	//		}
+	//	}
+	//}
+	//释放无人机
+
+	/*switch_overview_page("空间");*/
+	/*lanch_drones(s);*/
+	bool ret = check_red_withstand(pos);
+	if (ret)
 	{
-		switch_overview_page("残骸");
-		DELAY_N_SECONDS_WITH_NO_RED_HP_RETURN(1, s);
-		if (!is_nothing_found())	//环绕残骸
+		//环绕怪
+		l_click(pos[0], pos[1]);
+		int n = 20;
+		while (n > 0)
 		{
-			l_click(pt_one);
-			DELAY_N_SECONDS_RETURN(1, s);
 			if (find_orbit(pos))
 			{
 				l_click(pos[0] + 5, pos[1] + 2);
-				format_out_put(QString::fromLocal8Bit(" 环绕残骸成功,切换到刷怪界面."));
+				format_out_put(QString::fromLocal8Bit(" 环绕怪ok..."));
+				break;
 			}
-		}
-		else //环绕怪
-		{
-			switch_overview_page("刷怪");
-			DELAY_N_SECONDS_WITH_NO_RED_HP_RETURN(1, s);
-			if (!is_nothing_found())	//环绕残骸
+			else
 			{
-				l_click(pt_one);
-				DELAY_N_SECONDS_RETURN(1, s);
-				if (find_orbit(pos))
-				{
-					l_click(pos[0] + 5, pos[1] + 2);
-					format_out_put(QString::fromLocal8Bit(" 环绕残骸成功,切换到刷怪界面."));
-				}
+				DELAY_N_SECONDS_WITH_NO_RED_HP_RETURN(1, s);
 			}
+			--n;
 		}
-	}
-	//释放无人机
-	switch_overview_page("空间");
-	lanch_drones(s);
-	DELAY_N_SECONDS_WITH_NO_RED_HP_RETURN(1, s);
-	bool ret=check_red_withstand(pos);
-	if (ret)
-	{
-		l_click(pos[0], pos[1]);
-		DELAY_N_SECONDS_WITH_NO_RED_HP_RETURN(1, s);
-		int n = 5;
+		n = 8;
 		while (n > 0)
 		{
 			if (find_lockedtarget(pos))
@@ -1554,6 +1613,7 @@ int Scheme_1::withstand(int s)
 		ret = check_red_withstand(pos);
 		if (!ret)
 			return OK;
+		DELAY_N_SECONDS_WITH_NO_RED_HP_RETURN(1, s);
 	}
 }
 
@@ -1689,12 +1749,12 @@ void Scheme_1::close_popup_window()
 {
 	int pos[2] = { 0,0 };
 	bool ret = false;
-	ret = m_wnd->FindPicture(0, 0, m_wnd->GetWindowRect().right, m_wnd->GetWindowRect().bottom, "pic/CloseComputer.bmp", pos, "000000", 0.7);
+	ret = m_wnd->FindPicture(0, 0, m_wnd->GetWindowRect().right, m_wnd->GetWindowRect().bottom, "pic/CloseComputer.bmp", pos, "000000", 0.8);
 	if (ret)
 	{
 		l_click(pos[0] + 5, pos[1] + 3);
 	}
-	ret = m_wnd->FindPicture(0, 0, m_wnd->GetWindowRect().right, m_wnd->GetWindowRect().bottom, "pic/CloseComputer.bmp", pos, "000000", 0.7);
+	ret = m_wnd->FindPicture(0, 0, m_wnd->GetWindowRect().right, m_wnd->GetWindowRect().bottom, "pic/CloseComputer.bmp", pos, "000000", 0.8);
 	if (ret)
 	{
 		l_click(pos[0] + 5, pos[1] + 3);
@@ -1812,6 +1872,13 @@ void Scheme_1::print_state_machine(int cs,int s)
 	}
 }
 
+bool Scheme_1::is_an_egg()
+{
+	QPoint pt_drones = m_configure.GetDronesPos();
+	bool ret = m_wnd->FindPicture(pt_drones.x(), pt_drones.y(), m_wnd->GetWindowRect().right, m_wnd->GetWindowRect().bottom, "pic/Drones.bmp", nullptr, "000000", 0.7);
+	return !ret;
+}
+
 void Scheme_1::stop_timer_slot()
 {
 	QMutexLocker locker(&m_tMutex);
@@ -1920,6 +1987,14 @@ void Scheme_1::run()
 				{
 					m_stateMachine = 0;
 					m_normalState = -1;
+				}
+				else if (RED_WITHSTAND == ret)
+				{
+					m_stateMachine = 5;	//对抗
+				}
+				else
+				{
+					;
 				}
 			}
 			break;
