@@ -33,16 +33,13 @@ void GrabWindowAbnormalCondition::GrabWindowRequest(const int wid, const QString
 GrabExecute::GrabExecute(QObject *parent)
 	:QObject(parent)
 {
-
+	connect(this, SIGNAL(stop_timer()), this, SLOT(StopTimer()));
 }
 
 GrabExecute::~GrabExecute()
 {
-	if (m_timer != nullptr)
-	{
-		m_timer->stop();
-		delete m_timer;
-	}
+	emit stop_timer();
+	QThread::sleep(1);
 }
 
 void GrabExecute::timeout()
@@ -65,6 +62,15 @@ void GrabExecute::timeout()
 		file.append(".jpg");
 		QPixmap p= screen->grabWindow(t.key());
 		screen->grabWindow(t.key(), 0, 0, -1, -1).save(file,"JPG");
+	}
+}
+
+void GrabExecute::StopTimer()
+{
+	if (m_timer != nullptr)
+	{
+		m_timer->stop();
+		delete m_timer;
 	}
 }
 

@@ -5,6 +5,7 @@
 #include <QThread>
 #include <QDockWidget>
 #include <QSharedPointer>
+#include <QTime>
 #include "ui_Eve.h"
 #include "OutputInfo.h"
 #include "Rolelist.h"
@@ -25,6 +26,7 @@ private slots:
 	void releaseControl(QString role);
 	void quit(IScheme*);
 	void cmdBack(IScheme*, bool, int code);
+	void shutDownTime(QString role, QTime t);
 private:
 	bool is_role_launched(QString role);
 	int role_index(QString role);

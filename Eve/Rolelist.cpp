@@ -4,6 +4,7 @@
 #include <QTableWidgetItem>
 #include <QDateTime>
 #include <IconFont.h>
+#include <QDateTimeEdit>
 
 Rolelist::Rolelist(QWidget *parent)
 	: QWidget(parent)
@@ -200,6 +201,18 @@ void Rolelist::cmdExecStatus(QString role,bool ok, int code)
 	}
 }
 
+void Rolelist::timeChanged(const QTime & time)
+{
+	for (int i = 0; i < m_roles.size(); ++i)
+	{
+		if ((static_cast<QTimeEdit*>(ui.tableWidget->cellWidget(i, 8)))->time() != m_roles[i].shutDown)
+		{
+			m_roles[i].shutDown = (static_cast<QTimeEdit*>(ui.tableWidget->cellWidget(i, 8)))->time();
+			emit shutDownTime(m_roles[i].role, m_roles[i].shutDown);
+		}
+	}
+}
+
 void Rolelist::parse_role_list()
 {
 	QFile file("setting/role.xml");
@@ -294,6 +307,11 @@ void Rolelist::parse_role_list()
 		Item->setTextColor(Qt::red);
 		Item->setFlags(Item->flags() ^ Qt::ItemIsEditable);
 		ui.tableWidget->setItem(i, 7, Item);
+		QTimeEdit * time = new QTimeEdit(this);
+		time->setTime(QTime(18, 10, 0, 0));
+		ui.tableWidget->setCellWidget(i, 8, time);
+		connect(time, SIGNAL(timeChanged(const QTime &)), this, SLOT(timeChanged(const QTime &)));
+		m_roles[i].shutDown = QTime(18, 10, 0, 0);
 	}
 }
 

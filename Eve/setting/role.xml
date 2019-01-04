@@ -16,4 +16,8 @@
 	<name>Choose MePlz</name>
 	<scheme>方案1</scheme>
 </role>	
+<role>
+	<name>Track MyShip</name>
+	<scheme>方案1</scheme>
+</role>	
 </roles>

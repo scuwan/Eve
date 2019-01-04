@@ -74,6 +74,11 @@
        <string>释放控制权</string>
       </property>
      </column>
+     <column>
+      <property name="text">
+       <string>下线时间</string>
+      </property>
+     </column>
     </widget>
    </item>
   </layout>

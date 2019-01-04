@@ -4,7 +4,7 @@ QMap<QString, QSharedPointer<QMutex> > IScheme::m_gmutexs;
 
 IScheme::IScheme(QString role, QString group)
 {
-
+	m_shutdown =QDateTime(QDateTime::currentDateTime().date(),QTime(18, 10, 0, 0));
 }
 
 IScheme::~IScheme()
@@ -15,6 +15,26 @@ IScheme::~IScheme()
 QString IScheme::GetRole()
 {
 	return m_roleName;
+}
+
+void IScheme::SetShutDownTime(QTime t)
+{
+	QDateTime dt= QDateTime::currentDateTime();
+	if (dt.time() > t)
+	{
+		QDateTime dtt;
+		dtt.setDate(dt.date());
+		dtt.addDays(1);
+		dtt.setTime(t);
+		m_shutdown = dtt;
+	}
+	else
+	{
+		QDateTime dtt;
+		dtt.setDate(dt.date());
+		dtt.setTime(t);
+		m_shutdown = dtt;
+	}
 }
 
 void IScheme::Init()

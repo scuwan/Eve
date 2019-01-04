@@ -417,6 +417,10 @@ int Scheme_1::normal(int s=0)
 	switch (m_normalState)
 	{
 	case -1: // 第一次进入，判断是否在站内，不是回站
+		if (m_shutdown <= QDateTime::currentDateTime())
+		{
+			return SHUT_DOWN;
+		}
 		format_out_put(QString::fromLocal8Bit(" 开始执行刷怪逻辑."));
 		format_out_put(QString::fromLocal8Bit(" 执行刷怪前回站操作."));
 		ret = safe_back_station(0);
@@ -528,6 +532,7 @@ int Scheme_1::normal(int s=0)
 						DELAY_N_SECONDS_RETURN(2, s);*/
 						int n = 60;
 						//下面的while循环判断是否有怪
+						DELAY_N_SECONDS_WITH_NO_RED_HP_RETURN(8, s);
 						format_out_put(QString::fromLocal8Bit(" 检查异常里是否有怪..."));
 						while (n > 0)
 						{
@@ -927,17 +932,21 @@ int Scheme_1::normal(int s=0)
 				if (is_nothing_found())
 				{
 					grab(m_wnd->GetWindowId(), GetRole());
-					/*QPoint pt;
-					pt = m_configure.GetInstrumentPanelPos("Equipment 4");
-					l_click(pt);*/
 					bool ret = return_drones_to_bay(s);
 					DELAY_N_SECONDS_RETURN(3, s);
 
 					if (ret&!is_drone_in_space())
 					{
-						format_out_put(QString::fromLocal8Bit(" 异常中怪已经清理完毕!!! 跳下个异常"), "#0000ff");
-						m_normalState = 1;
-						return OK;
+						if (m_shutdown > QDateTime::currentDateTime())
+						{
+							format_out_put(QString::fromLocal8Bit(" 异常中怪已经清理完毕!!! 跳下个异常"), "#0000ff");
+							m_normalState = 1;
+							return OK;
+						}
+						else
+						{
+							return SHUT_DOWN;
+						}
 					}
 				}
 			}	
@@ -982,7 +991,7 @@ int Scheme_1::normal(int s=0)
 				--n;
 			}
 		}
-		DELAY_N_SECONDS_RETURN(2, s);
+		DELAY_N_SECONDS_RETURN(1, s);
 		++count_t_check_guai;
 		++count_t_flash_yellow;
 		break;
@@ -1973,10 +1982,17 @@ void Scheme_1::run()
 			ret = safe_back_station(1);
 			if (OK==ret)
 			{
-				
-				format_out_put(QString::fromLocal8Bit(" 有异常情况,本次刷怪结束，n分钟之后重新尝试刷怪."));
-				start_rerun_timer();
-				m_stateMachine = -1;
+				if (m_shutdown > QDateTime::currentDateTime())
+				{
+					format_out_put(QString::fromLocal8Bit(" 有异常情况,本次刷怪结束，n分钟之后重新尝试刷怪."));
+					start_rerun_timer();
+					m_stateMachine = -1;
+				}
+				else
+				{
+					format_out_put(QString::fromLocal8Bit(" 达到下线时间，退出脚本!!!"), "#ff0000");
+					m_stateMachine = 2;
+				}
 			}
 			else if(RED_WITHSTAND == ret)
 			{
@@ -2045,9 +2061,10 @@ void Scheme_1::run()
 				m_stateMachine = 1;
 				format_out_put(QString::fromLocal8Bit(" 刷怪过程找那个出现异常情况!!!"));
 			}
-			else
+			else if(SHUT_DOWN == ret)
 			{
-				//print_state_machine(ret);
+				format_out_put(QString::fromLocal8Bit(" 到达下线时间!!! 下线"), "#ff0000");
+				m_stateMachine = 1;
 				;
 			}
 			break;

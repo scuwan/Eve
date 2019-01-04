@@ -33,7 +33,10 @@ public:
 public slots:
 	void GrabWindowRequest(const int wid, const QString role);
 	void timeout();
-
+private slots:	
+	void StopTimer();
+signals:
+	void stop_timer();
 private:
 	struct  RoleDir
 	{

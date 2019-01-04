@@ -7,6 +7,7 @@
 #include <QVector>
 #include <QString>
 #include <QStringList>
+#include <QTime>
 
 class Rolelist : public QWidget
 {
@@ -23,12 +24,14 @@ signals:
 	void stopRole(QString role);
 	void releaseControl(QString role);
 	void cmdInfo(const QString& info,const QString& color);
+	void shutDownTime(QString role, QTime);
 public:
 	void setThreadId(QString role,int id);
 public slots:
 	void cmdExecStatus(QString role,bool ok,int code);
 private slots:
 	void cellClicked(int row, int column);
+	void timeChanged(const QTime & time);
 private:
 	void parse_role_list();
 	int role_index(QString role);
@@ -44,6 +47,7 @@ private:
 		int state=0;		/* 0-离线,1-在线,2-暂停*/
 		int oldState = 0;
 		int currentCmdcode = -1;	//0 - 脚本线程退出 1 - 脚本线程暂停 2 - 启动脚本线程 3 - 重启脚本线程 4 - 释放控制权
+		QTime shutDown;
 	};
 	QVector<Role> m_roles;
 };

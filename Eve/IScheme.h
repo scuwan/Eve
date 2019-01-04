@@ -6,6 +6,8 @@
 #include <QDatetime>
 #include <QSharedPointer>
 #include <QMap>
+#include <QTime>
+#include <QDatetime>
 class IScheme :public QObject
 {
 	Q_OBJECT
@@ -23,6 +25,7 @@ public:
 	virtual int GetLastError() = 0;
 	virtual QString SchemeName() = 0;
 	QString GetRole();
+	void SetShutDownTime(QTime t);
 	static void Init();
 private:
 	virtual void run() = 0;
@@ -41,6 +44,7 @@ protected:
 	QString m_groupName = QString::fromLocal8Bit("默认组");
 	const QString DGROUPNAME = QString::fromLocal8Bit("默认组");
 	static QMap<QString, QSharedPointer<QMutex> > m_gmutexs;
+	QDateTime m_shutdown;
 private:
 	QVector<QString> m_info;
 	int flag = 1;

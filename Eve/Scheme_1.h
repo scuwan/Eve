@@ -19,7 +19,7 @@ public:
 	int GetLastError();
 	virtual QString SchemeName();
 private:
-	enum {OK=-1,NOK=-2,RED=-3,LOW_HP=-4,RED_WITHSTAND=-5/*来红对抗*/};
+	enum {OK=-1,NOK=-2,RED=-3,LOW_HP=-4,RED_WITHSTAND=-5/*来红对抗*/,SHUT_DOWN=-6};
 	virtual void run();
 	//安全回空间站
 	int safe_back_station(int s);

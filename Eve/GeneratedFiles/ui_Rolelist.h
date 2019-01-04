@@ -37,8 +37,8 @@ public:
         gridLayout->setObjectName(QStringLiteral("gridLayout"));
         gridLayout->setContentsMargins(0, 0, 0, 0);
         tableWidget = new QTableWidget(Rolelist);
-        if (tableWidget->columnCount() < 8)
-            tableWidget->setColumnCount(8);
+        if (tableWidget->columnCount() < 9)
+            tableWidget->setColumnCount(9);
         QTableWidgetItem *__qtablewidgetitem = new QTableWidgetItem();
         tableWidget->setHorizontalHeaderItem(0, __qtablewidgetitem);
         QTableWidgetItem *__qtablewidgetitem1 = new QTableWidgetItem();
@@ -55,6 +55,8 @@ public:
         tableWidget->setHorizontalHeaderItem(6, __qtablewidgetitem6);
         QTableWidgetItem *__qtablewidgetitem7 = new QTableWidgetItem();
         tableWidget->setHorizontalHeaderItem(7, __qtablewidgetitem7);
+        QTableWidgetItem *__qtablewidgetitem8 = new QTableWidgetItem();
+        tableWidget->setHorizontalHeaderItem(8, __qtablewidgetitem8);
         tableWidget->setObjectName(QStringLiteral("tableWidget"));
         tableWidget->verticalHeader()->setVisible(false);
 
@@ -85,6 +87,8 @@ public:
         ___qtablewidgetitem6->setText(QApplication::translate("Rolelist", "\347\272\277\347\250\213id", Q_NULLPTR));
         QTableWidgetItem *___qtablewidgetitem7 = tableWidget->horizontalHeaderItem(7);
         ___qtablewidgetitem7->setText(QApplication::translate("Rolelist", "\351\207\212\346\224\276\346\216\247\345\210\266\346\235\203", Q_NULLPTR));
+        QTableWidgetItem *___qtablewidgetitem8 = tableWidget->horizontalHeaderItem(8);
+        ___qtablewidgetitem8->setText(QApplication::translate("Rolelist", "\344\270\213\347\272\277\346\227\266\351\227\264", Q_NULLPTR));
     } // retranslateUi
 
 };

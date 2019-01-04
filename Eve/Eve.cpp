@@ -11,20 +11,6 @@ Eve::Eve(QMainWindow *parent)
 	ui.setupUi(this);
 	m_grab = new GrabWindowAbnormalCondition(this);
 	IScheme::Init();
-	/* splitter layout*/
-	/*QVBoxLayout *layout = new QVBoxLayout(this);
-	QSplitter *splitter = new QSplitter(this);
-	splitter->setOrientation(Qt::Vertical);
-	rolesui = new Rolelist(splitter);
-	outputui = new OutputInfo(splitter);
-	splitter->addWidget(rolesui);
-	splitter->addWidget(outputui);
-	splitter->setStretchFactor(0, 4);
-	splitter->setStretchFactor(1, 1);
-	layout->addWidget(splitter);
-	ui.centralwidget->setLayout(layout);*/
-
-	/* dockwidget layout*/
 	QVBoxLayout *layout = new QVBoxLayout(this);
 	rolesui = new Rolelist(this);
 	layout->addWidget(rolesui);
@@ -37,12 +23,6 @@ Eve::Eve(QMainWindow *parent)
 	dockinfo->setWidget(cmdinfoui);
 	addDockWidget(Qt::BottomDockWidgetArea, dockinfo);
 
-	/*QDockWidget *dockinforole = new  QDockWidget(QString::fromLocal8Bit("╫ги╚пео╒"), this);
-	dockinforole->setFeatures(QDockWidget::AllDockWidgetFeatures);
-	dockinforole->setAllowedAreas(Qt::BottomDockWidgetArea);
-	OutputInfo *outputui1 = new OutputInfo(dockinforole);
-	dockinforole->setWidget(outputui1);
-	this->tabifyDockWidget(dockinfo, dockinforole);*/
 	QStringList ls = rolesui->Roles();
 	for (int i = 0; i < ls.size(); ++i)
 	{
@@ -63,6 +43,7 @@ Eve::Eve(QMainWindow *parent)
 	connect(rolesui, SIGNAL(stopRole(QString)), this, SLOT(stopRole(QString)));
 	connect(rolesui, SIGNAL(releaseControl(QString)), this, SLOT(releaseControl(QString)));
 	connect(rolesui, SIGNAL(cmdInfo(const QString&,const QString&)),cmdinfoui, SLOT(StandOut(const QString&,const QString&)));
+	connect(rolesui, SIGNAL(shutDownTime(QString, QTime)), this, SLOT(shutDownTime(QString, QTime)));
 }
 
 void Eve::launchRole(QString role, QString scheme)
@@ -138,6 +119,14 @@ void Eve::cmdBack(IScheme *scheme, bool ok, int code)
 	rolesui->cmdExecStatus(scheme->GetRole(), ok, code);
 	if (code == 2)
 		rolesui->cmdExecStatus(scheme->GetRole(), ok, 3);
+}
+
+void Eve::shutDownTime(QString role, QTime t)
+{
+	int index = role_index(role);
+	if (index < 0)
+		return;
+	m_runtime[index]->scheme->SetShutDownTime(t);
 }
 
 bool Eve::is_role_launched(QString role)
