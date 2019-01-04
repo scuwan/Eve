@@ -373,7 +373,7 @@ void Rolelist::cellClicked(int row, int column)
 			m_roles[row].oldState = 0;
 			m_roles[row].currentCmdcode = 2;
 			print_info(QString::fromLocal8Bit("启动脚本线程..."), role,"#ff0000");
-			emit launchRole(m_roles[row].role, m_roles[row].scheme);
+			emit launchRole(m_roles[row].role, m_roles[row].scheme,m_roles[row].shutDown);
 		}
 		break;
 	}

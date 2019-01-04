@@ -37,7 +37,7 @@ Eve::Eve(QMainWindow *parent)
 		m_roleinfodocks.push_back(iw);
 	}
 
-	connect(rolesui, SIGNAL(launchRole(QString, QString)), this, SLOT(launchRole(QString, QString)));
+	connect(rolesui, SIGNAL(launchRole(QString, QString,QTime)), this, SLOT(launchRole(QString, QString,QTime)));
 	connect(rolesui, SIGNAL(pauseRole(QString)), this, SLOT(pauseRole(QString)));
 	connect(rolesui, SIGNAL(restartRole(QString)), this, SLOT(restartRole(QString)));
 	connect(rolesui, SIGNAL(stopRole(QString)), this, SLOT(stopRole(QString)));
@@ -46,7 +46,7 @@ Eve::Eve(QMainWindow *parent)
 	connect(rolesui, SIGNAL(shutDownTime(QString, QTime)), this, SLOT(shutDownTime(QString, QTime)));
 }
 
-void Eve::launchRole(QString role, QString scheme)
+void Eve::launchRole(QString role, QString scheme,QTime time)
 {
 	if (is_role_launched(role))
 		return;
@@ -54,6 +54,7 @@ void Eve::launchRole(QString role, QString scheme)
 	m_runtime.last()->role = role;
 	m_runtime.last()->thread = new QThread(this);
 	m_runtime.last()->scheme = new Scheme_1(role);
+	m_runtime.last()->scheme->SetShutDownTime(time);
 	m_runtime.last()->scheme->moveToThread(m_runtime.last()->thread);
 	connect(m_runtime.last()->scheme, SIGNAL(quit(IScheme*)), this, SLOT(quit(IScheme*)));
 	connect(m_runtime.last()->scheme, SIGNAL(eState(IScheme*,bool,int)), this, SLOT(cmdBack(IScheme*,bool,int)));

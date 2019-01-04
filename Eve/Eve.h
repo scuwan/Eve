@@ -19,7 +19,7 @@ public:
 	Eve(QMainWindow *parent = Q_NULLPTR);
 	~Eve();
 private slots:
-	void launchRole(QString role, QString scheme);
+	void launchRole(QString role, QString scheme,QTime t);
 	void pauseRole(QString role);
 	void restartRole(QString role);
 	void stopRole(QString role);
