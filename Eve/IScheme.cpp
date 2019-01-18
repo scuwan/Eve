@@ -1,4 +1,5 @@
 #include "IScheme.h"
+#include <QDebug>
 
 QMap<QString, QSharedPointer<QMutex> > IScheme::m_gmutexs;
 
@@ -24,7 +25,7 @@ void IScheme::SetShutDownTime(QTime t)
 	{
 		QDateTime dtt;
 		dtt.setDate(dt.date());
-		dtt.addDays(1);
+		dtt=dtt.addDays(1);
 		dtt.setTime(t);
 		m_shutdown = dtt;
 	}
@@ -35,6 +36,8 @@ void IScheme::SetShutDownTime(QTime t)
 		dtt.setTime(t);
 		m_shutdown = dtt;
 	}
+	QString current_date = m_shutdown.toString("yyyy.MM.dd hh:mm:ss.zzz ddd");
+	qDebug() << current_date;
 }
 
 void IScheme::Init()

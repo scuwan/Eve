@@ -505,13 +505,15 @@ int Scheme_1::normal(int s=0)
 				 //找到异常
 				if(1)
 				{
+					QPoint currnt_exception_pt;
 					if (1)
 					{
 						QMutexLocker locker(m_gmutexs[m_groupName].data());
 						DELAY_N_SECONDS_RETURN(1, s);
 						LockWindow t(m_wnd);
 						format_out_put(QString::fromLocal8Bit(" 找到可刷异常,前往..."));
-						QPoint currnt_exception_pt(pos[0] + 5, pos[1] + 2);
+						QPoint currnt_exception_pt_a(pos[0] + 5, pos[1] + 2);
+						currnt_exception_pt = currnt_exception_pt_a;
 						QPoint o;
 						o = m_configure.GetProbeScannerWraptoWithin_o("Wrap to Within");
 						QPoint wrap_to_within(pos[0] + o.x(), pos[1] + o.y());
@@ -587,35 +589,37 @@ int Scheme_1::normal(int s=0)
 						//有怪，检查友军，检查建筑物，检查红
 						format_out_put(QString::fromLocal8Bit(" 异常中有怪可刷，检查友军..."));
 						//检查友军，如果存在友军，wrap to station
-						if (check_green())
-						{
-							format_out_put(QString::fromLocal8Bit(" 存在友军，屏蔽异常,8s后 Wrap to 空间站 0m."));
-							DELAY_N_SECONDS_RETURN(8, s);
-							//屏蔽异常代码
-							ignore_exception(currnt_exception_pt);
-							//关闭异常窗口
-							close_probe_scanner();
-							//wrap to 空间站
-							int ret = wrap_to_station(s);
-							if (OK == ret)
-							{
-								DELAY_N_SECONDS_RETURN(10, s);
-								break;
-							}
-							else if (NOK == ret)
-							{
-								return NOK;
-							}
-							else
-							{
-								return ret;
-							}
-						}
-						//没有友军
-						close_probe_scanner();
-						format_out_put(QString::fromLocal8Bit(" 没有友军，探测是否有可环绕的建筑物..."));
-						CHECK_STATEMACHIN_RETURN(s);
+						ret = check_green();
 					}
+					if (ret)
+					{
+						format_out_put(QString::fromLocal8Bit(" 存在友军，屏蔽异常,8s后 Wrap to 空间站 0m."));
+						DELAY_N_SECONDS_WITH_NO_RED_HP_RETURN(8, s);
+						//屏蔽异常代码
+						ignore_exception(currnt_exception_pt);
+						//关闭异常窗口
+						close_probe_scanner();
+						//wrap to 空间站
+						int ret = wrap_to_station(s);
+						if (OK == ret)
+						{
+							DELAY_N_SECONDS_RETURN(10, s);
+							break;
+						}
+						else if (NOK == ret)
+						{
+							return NOK;
+						}
+						else
+						{
+							return ret;
+						}
+					}
+					//没有友军
+					close_probe_scanner();
+					format_out_put(QString::fromLocal8Bit(" 没有友军，探测是否有可环绕的建筑物..."));
+					CHECK_STATEMACHIN_RETURN(s);
+					
 					//检查建筑物，如果有环绕
 					if (check_building(pos))
 					{
@@ -741,16 +745,16 @@ int Scheme_1::normal(int s=0)
 	case 2:
 		static int count_t_check_guai = 0;
 		static int count_t_flash_yellow = 0;
-		//网子检查
-		if (check_web())
+		//检查扰断
+		if (check_broken())
 		{
+			format_out_put(QString::fromLocal8Bit("检查到扰断,打掉它"), "#55ffff");
 			switch_overview_page("刷怪");
 			DELAY_N_SECONDS_WITH_NO_RED_HP_RETURN(1, s);
 			int pos[2] = { 0,0 };
-			bool ret = find_web_overview(pos);
+			bool ret = find_broken_overview(pos);
 			if (ret)
 			{
-				format_out_put(QString::fromLocal8Bit("检查到网子,打掉它"),"#55ffff");
 				l_click(pos[0], pos[1]);
 				DELAY_N_SECONDS_WITH_NO_RED_HP_RETURN(1, s);
 				int n = 5;
@@ -786,10 +790,10 @@ int Scheme_1::normal(int s=0)
 		else
 		{
 			int pos[2] = { 0,0 };
-			bool ret = find_web_overview(pos);
+			bool ret = find_broken_overview(pos);
 			if (ret)
 			{
-				format_out_put(QString::fromLocal8Bit("检查到网子,打掉它"),"#55ffff");
+				format_out_put(QString::fromLocal8Bit("检查到扰断,打掉它"), "#55ffff");
 				l_click(pos[0], pos[1]);
 				DELAY_N_SECONDS_WITH_NO_RED_HP_RETURN(1, s);
 				int n = 5;
@@ -822,18 +826,18 @@ int Scheme_1::normal(int s=0)
 				break;
 			}
 		}
-		//检查扰断
-		if (check_broken())
+		//网子检查
+		if (check_web())
 		{
-			format_out_put(QString::fromLocal8Bit("检查到扰断,打掉它"),"#55ffff");
 			switch_overview_page("刷怪");
-			DELAY_N_SECONDS_WITH_NO_RED_HP_RETURN(1, s);
-			int pos[2] = {0,0};
-			bool ret = find_broken_overview(pos);
+			DELAY_N_SECONDS_RETURN(1, s);
+			int pos[2] = { 0,0 };
+			bool ret = find_web_overview(pos);
 			if (ret)
 			{
-				l_click(pos[0],pos[1]);
-				DELAY_N_SECONDS_WITH_NO_RED_HP_RETURN(1, s);
+				format_out_put(QString::fromLocal8Bit("检查到网子,打掉它"),"#55ffff");
+				l_click(pos[0], pos[1]);
+				DELAY_N_SECONDS_RETURN(1, s);
 				int n = 5;
 				while (n > 0)
 				{
@@ -841,23 +845,23 @@ int Scheme_1::normal(int s=0)
 					{
 						l_click(100, 3);
 						m_wnd->KeyPress('F');
-						DELAY_N_SECONDS_WITH_NO_RED_HP_RETURN(1, s);
+						DELAY_N_SECONDS_RETURN(1, s);
 						m_wnd->KeyPress('F');
-						DELAY_N_SECONDS_WITH_NO_RED_HP_RETURN(1, s);
+						DELAY_N_SECONDS_RETURN(1, s);
 						m_wnd->KeyPress('F');
 						break;
 					}
 					else if (find_locktarget(pos))
 					{
 						l_click(pos[0] + 5, pos[1] + 2);
-						DELAY_N_SECONDS_WITH_NO_RED_HP_RETURN(5, s);
+						DELAY_N_SECONDS_RETURN(5, s);
 						l_click(100, 3);
 						m_wnd->KeyPress('F');
-						DELAY_N_SECONDS_WITH_NO_RED_HP_RETURN(1, s);
+						DELAY_N_SECONDS_RETURN(1, s);
 					}
 					else
 					{
-						DELAY_N_SECONDS_WITH_NO_RED_HP_RETURN(2, s);
+						DELAY_N_SECONDS_RETURN(2, s);
 					}
 					--n;
 				}
@@ -867,12 +871,12 @@ int Scheme_1::normal(int s=0)
 		else
 		{
 			int pos[2] = { 0,0 };
-			bool ret = find_broken_overview(pos);
+			bool ret = find_web_overview(pos);
 			if (ret)
 			{
-				format_out_put(QString::fromLocal8Bit("检查到扰断,打掉它"),"#55ffff");
+				format_out_put(QString::fromLocal8Bit("检查到网子,打掉它"),"#55ffff");
 				l_click(pos[0], pos[1]);
-				DELAY_N_SECONDS_WITH_NO_RED_HP_RETURN(1, s);
+				DELAY_N_SECONDS_RETURN(1, s);
 				int n = 5;
 				while (n > 0)
 				{
@@ -880,23 +884,23 @@ int Scheme_1::normal(int s=0)
 					{
 						l_click(100, 3);
 						m_wnd->KeyPress('F');
-						DELAY_N_SECONDS_WITH_NO_RED_HP_RETURN(1, s);
+						DELAY_N_SECONDS_RETURN(1, s);
 						m_wnd->KeyPress('F');
-						DELAY_N_SECONDS_WITH_NO_RED_HP_RETURN(1, s);
+						DELAY_N_SECONDS_RETURN(1, s);
 						m_wnd->KeyPress('F');
 						break;
 					}
 					else if (find_locktarget(pos))
 					{
 						l_click(pos[0] + 5, pos[1] + 2);
-						DELAY_N_SECONDS_WITH_NO_RED_HP_RETURN(5, s);
+						DELAY_N_SECONDS_RETURN(5, s);
 						l_click(100, 3);
 						m_wnd->KeyPress('F');
-						DELAY_N_SECONDS_WITH_NO_RED_HP_RETURN(1, s);
+						DELAY_N_SECONDS_RETURN(1, s);
 					}
 					else
 					{
-						DELAY_N_SECONDS_WITH_NO_RED_HP_RETURN(2, s);
+						DELAY_N_SECONDS_RETURN(2, s);
 					}
 					--n;
 				}
@@ -921,7 +925,7 @@ int Scheme_1::normal(int s=0)
 			return LOW_HP;
 		}
 		//检查怪是否刷完，每20s检测一次
-		if (count_t_check_guai % 10 == 0)
+		if (count_t_check_guai % 5 == 0)
 		{
 			LockWindow t(m_wnd);
 			count_t_check_guai = 0;
@@ -931,7 +935,7 @@ int Scheme_1::normal(int s=0)
 			{
 				if (is_nothing_found())
 				{
-					grab(m_wnd->GetWindowId(), GetRole());
+					//grab(m_wnd->GetWindowId(), GetRole());
 					bool ret = return_drones_to_bay(s);
 					DELAY_N_SECONDS_RETURN(3, s);
 
@@ -952,7 +956,7 @@ int Scheme_1::normal(int s=0)
 			}	
 		}
 		//怪物锁定，闪黄
-		if (count_t_flash_yellow % 5 == 0&&is_flash_yellow()&&!is_nothing_found())
+		if (count_t_flash_yellow % 2 == 0&&is_flash_yellow()&&!is_nothing_found())
 		{
 			count_t_flash_yellow = 0;
 			switch_overview_page("刷怪");
@@ -1049,7 +1053,7 @@ int Scheme_1::return_drones_to_bay(int s)
 			QPoint pt2 = m_configure.GetStationItemPos("Approach");
 			l_click(pt2);
 		}
-		DELAY_N_SECONDS_WITH_RED_WITHSTAND(8, s);
+		DELAY_N_SECONDS_WITH_RED_WITHSTAND(5, s);
 		QPoint pt3;
 		pt3 = m_configure.GetInstrumentPanelPos("Equipment 4");
 		l_click(pt3);
@@ -1064,7 +1068,7 @@ int Scheme_1::return_drones_to_bay(int s)
 					r_click(pt);
 					DELAY_N_SECONDS_WITH_RED_WITHSTAND(1, s);
 					l_click(pt1);
-					DELAY_N_SECONDS_WITH_RED_WITHSTAND(2, s);
+					//DELAY_N_SECONDS_WITH_RED_WITHSTAND(2, s);
 				}
 				else
 					DELAY_N_SECONDS_WITH_RED_WITHSTAND(2, s);
@@ -1280,21 +1284,21 @@ bool Scheme_1::find_overview(int * pos)
 bool Scheme_1::find_orbit(int *pos)
 {
 	QPoint pt_si= m_configure.GetSelectItemPos();
-	bool ret = m_wnd->FindPicture(pt_si.x(), pt_si.y(),pt_si.x()+150, pt_si.y()+100, "pic/Orbit.bmp", pos, "000000",0.7);
+	bool ret = m_wnd->FindPicture(pt_si.x(), pt_si.y(), m_wnd->GetWindowRect().right, pt_si.y()+150, "pic/Orbit.bmp", pos, "000000",0.7);
 	return ret;
 }
 
 bool Scheme_1::find_locktarget(int * pos)
 {
 	QPoint pt_si = m_configure.GetSelectItemPos();
-	bool ret = m_wnd->FindPicture(pt_si.x(), pt_si.y(), pt_si.x() + 150, pt_si.y() + 100, "pic/LockTarget.bmp", pos, "000000",0.7);
+	bool ret = m_wnd->FindPicture(pt_si.x(), pt_si.y(), m_wnd->GetWindowRect().right, pt_si.y() + 150, "pic/LockTarget.bmp", pos, "000000",0.7);
 	return ret;
 }
 
 bool Scheme_1::find_lockedtarget(int * pos)
 {
 	QPoint pt_si = m_configure.GetSelectItemPos();
-	bool ret = m_wnd->FindPicture(pt_si.x(), pt_si.y(), pt_si.x() + 150, pt_si.y() + 100, "pic/LockedTarget.bmp", pos, "000000", 0.7);
+	bool ret = m_wnd->FindPicture(pt_si.x(), pt_si.y(), m_wnd->GetWindowRect().right, pt_si.y() + 150, "pic/LockedTarget.bmp", pos, "000000", 0.7);
 	return ret;
 }
 
@@ -1466,19 +1470,19 @@ bool Scheme_1::check_red()
 	QPoint pt_a = m_configure.GetAlliancePos();
 	QPoint pt_l = m_configure.GetLocalPos();
 	int pos[2];
-	bool ret = m_wnd->FindPicture(pt_l.x(), pt_l.y(), m_wnd->GetWindowRect().right, m_wnd->GetWindowRect().bottom, "pic/Red.bmp",pos , "000000", 0.9);
+	bool ret = m_wnd->FindPicture(pt_l.x(), pt_l.y(), pt_l.x()+300, m_wnd->GetWindowRect().bottom, "pic/Red.bmp",pos , "000000", 0.9);
 	if (ret)
 	{
 		if (pos[1] < pt_a.y())
 			return true;
 	}
-	ret = m_wnd->FindPicture(pt_l.x(), pt_l.y(), m_wnd->GetWindowRect().right, m_wnd->GetWindowRect().bottom, "pic/Red1.bmp", pos, "000000", 0.9);
+	ret = m_wnd->FindPicture(pt_l.x(), pt_l.y(), pt_l.x() + 300, m_wnd->GetWindowRect().bottom, "pic/Red1.bmp", pos, "000000", 0.9);
 	if (ret)
 	{
 		if (pos[1] < pt_a.y())
 			return true;
 	}
-	ret = m_wnd->FindPicture(pt_l.x(), pt_l.y(), m_wnd->GetWindowRect().right, m_wnd->GetWindowRect().bottom, "pic/Red2.bmp", pos, "000000", 0.9);
+	ret = m_wnd->FindPicture(pt_l.x(), pt_l.y(), pt_l.x() + 300, m_wnd->GetWindowRect().bottom, "pic/Red2.bmp", pos, "000000", 0.9);
 	if (ret)
 	{
 		if (pos[1] < pt_a.y())
@@ -1516,71 +1520,18 @@ int Scheme_1::withstand(int s)
 {
 	int orbit = 0;
 	int pos[2] = {0,0};
+	QPoint pt;
+	pt = m_configure.GetInstrumentPanelPos("Equipment 4");
+	l_click(pt);
 	lanch_drones(s);
-	//环绕建筑物
-	/*if (check_building(pos))
-	{
-		format_out_put(QString::fromLocal8Bit(" 探测到可环绕建筑物，并环绕..."));
-		l_click(pos[0] + 10, pos[1] + 2);
-		pos[0] = 0;
-		pos[1] = 0;
-		Sleep(500);
-		int n = 20;
-		while (n > 0)
-		{
-			if (find_orbit(pos))
-			{
-				l_click(pos[0] + 5, pos[1] + 2);
-				format_out_put(QString::fromLocal8Bit(" 环绕建筑物成功.执行释放无人机操作..."));
-				break;
-			}
-			else
-			{
-				DELAY_N_SECONDS_WITH_NO_RED_HP_RETURN(1, s);
-			}
-		}
-		orbit = 1;
-	}*/
-	//QPoint pt_one = m_configure.GetOverviewFirstItem();
-	//if (0 == orbit)
-	//{
-	//	switch_overview_page("残骸");
-	//	DELAY_N_SECONDS_WITH_NO_RED_HP_RETURN(1, s);
-	//	if (!is_nothing_found())	//环绕残骸
-	//	{
-	//		l_click(pt_one);
-	//		DELAY_N_SECONDS_RETURN(1, s);
-	//		if (find_orbit(pos))
-	//		{
-	//			l_click(pos[0] + 5, pos[1] + 2);
-	//			format_out_put(QString::fromLocal8Bit(" 环绕残骸成功,切换到刷怪界面."));
-	//		}
-	//	}
-	//	else //环绕怪
-	//	{
-	//		switch_overview_page("刷怪");
-	//		DELAY_N_SECONDS_WITH_NO_RED_HP_RETURN(1, s);
-	//		if (!is_nothing_found())	//环绕残骸
-	//		{
-	//			l_click(pt_one);
-	//			DELAY_N_SECONDS_RETURN(1, s);
-	//			if (find_orbit(pos))
-	//			{
-	//				l_click(pos[0] + 5, pos[1] + 2);
-	//				format_out_put(QString::fromLocal8Bit(" 环绕残骸成功,切换到刷怪界面."));
-	//			}
-	//		}
-	//	}
-	//}
-	//释放无人机
-
-	/*switch_overview_page("空间");*/
-	/*lanch_drones(s);*/
 	bool ret = check_red_withstand(pos);
-	if (ret)
+	pt = m_configure.GetOverviewFirstItem();
+	pos[0] = pt.x();
+	pos[1] = pt.y();
+	if (1)
 	{
 		//环绕怪
-		l_click(pos[0], pos[1]);
+		l_click(pos[0] + 5, pos[1] + 2);
 		int n = 20;
 		while (n > 0)
 		{
