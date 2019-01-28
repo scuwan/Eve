@@ -994,6 +994,21 @@ int Scheme_1::normal(int s=0)
 				}
 				--n;
 			}
+			if (is_flash_yellow() && !is_nothing_found())
+			{
+				format_out_put(QString::fromLocal8Bit(" 检测到环绕的残骸消失，环绕新的残骸ing."));
+				switch_overview_page("残骸");
+				DELAY_N_SECONDS_RETURN(2, s);
+				QPoint pt_one;
+				pt_one = m_configure.GetOverviewFirstItem();
+				l_click(pt_one);
+				DELAY_N_SECONDS_RETURN(1, s);
+				if (find_orbit(pos))
+				{
+					l_click(pos[0] + 5, pos[1] + 2);
+					format_out_put(QString::fromLocal8Bit(" 环绕残骸成功,切换到刷怪界面."));
+				}
+			}
 		}
 		DELAY_N_SECONDS_RETURN(1, s);
 		++count_t_check_guai;
@@ -1519,15 +1534,18 @@ bool Scheme_1::check_red_withstand(int *pos)
 int Scheme_1::withstand(int s)
 {
 	int orbit = 0;
-	int pos[2] = {0,0};
+	int pos[2] = { 0,0 };
 	QPoint pt;
 	pt = m_configure.GetInstrumentPanelPos("Equipment 4");
 	l_click(pt);
 	lanch_drones(s);
 	bool ret = check_red_withstand(pos);
-	pt = m_configure.GetOverviewFirstItem();
-	pos[0] = pt.x();
-	pos[1] = pt.y();
+	if (!ret)
+	{
+		pt = m_configure.GetOverviewFirstItem();
+		pos[0] = pt.x();
+		pos[1] = pt.y();
+	}
 	if (1)
 	{
 		//环绕怪
