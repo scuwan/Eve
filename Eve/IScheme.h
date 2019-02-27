@@ -24,6 +24,7 @@ public:
 	virtual void ReleaseControl() = 0;
 	virtual int GetLastError() = 0;
 	virtual QString SchemeName() = 0;
+	virtual void WindowPositionDetection();
 	QString GetRole();
 	void SetShutDownTime(QTime t);
 	static void Init();
@@ -34,6 +35,7 @@ signals:
 	void newInfo(const QString& info,const QString& color="#ffffff");			//新的消息
 	void quit(IScheme*);
 	void GrabWindowRequest(const int wid, const QString role);
+	void WindowPositionDetectionFinish(bool);
 public slots:
 	virtual void Run();
 protected:

@@ -13,6 +13,11 @@ IScheme::~IScheme()
 
 }
 
+void IScheme::WindowPositionDetection()
+{
+	emit WindowPositionDetectionFinish(true);
+}
+
 QString IScheme::GetRole()
 {
 	return m_roleName;

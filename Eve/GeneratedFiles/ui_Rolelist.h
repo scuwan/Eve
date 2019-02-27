@@ -58,7 +58,7 @@ public:
         QTableWidgetItem *__qtablewidgetitem8 = new QTableWidgetItem();
         tableWidget->setHorizontalHeaderItem(8, __qtablewidgetitem8);
         tableWidget->setObjectName(QStringLiteral("tableWidget"));
-        tableWidget->verticalHeader()->setVisible(false);
+        tableWidget->verticalHeader()->setVisible(true);
 
         gridLayout->addWidget(tableWidget, 0, 0, 1, 1);
 

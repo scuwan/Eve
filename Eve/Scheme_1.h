@@ -18,8 +18,9 @@ public:
 	virtual void ReleaseControl();
 	int GetLastError();
 	virtual QString SchemeName();
+	virtual void WindowPositionDetection();
 private:
-	enum {OK=-1,NOK=-2,RED=-3,LOW_HP=-4,RED_WITHSTAND=-5/*来红对抗*/,SHUT_DOWN=-6};
+	enum {OK=-1,NOK=-2,RED=-3,LOW_HP=-4,RED_WITHSTAND=-5/*来红对抗*/,SHUT_DOWN=-6,WINDOW_CHECK_FAIL=-7/*窗口检查失败*/};
 	virtual void run();
 	//安全回空间站
 	int safe_back_station(int s);
@@ -42,6 +43,9 @@ private:
 	bool is_in_space();
 	//判断船在空间站外
 	bool is_out_space();
+	//Undock
+	bool find_undock(int *pos = nullptr);
+	bool find_local(int* pos = nullptr);
 	//空间站
 	bool find_station(int *pos=nullptr);
 	//总揽
@@ -53,12 +57,18 @@ private:
 	bool find_lockedtarget(int *pos = nullptr);
 	//Select item
 	bool find_select_item(int *pos = nullptr);
+	//Drones
+	bool find_drones(int *pos = nullptr);
+	//控制面板
+	bool find_panel(int *pos = nullptr);
 	//鼠标左键点击
 	void l_click(QPoint pt);
 	void l_click(int x, int y);
 	//鼠标右键点击
 	void r_click(QPoint pt);
 	void r_click(int x, int y);
+	//鼠标点击拖动
+	void click_move();
 	//重新刷怪定时器 n分钟
 	void start_rerun_timer();
 	//检查是否有泡泡
@@ -111,15 +121,19 @@ private:
 	void print_state_machine(int cs,int s);
 	//判断是否是蛋
 	bool is_an_egg();
+	//刷怪前检测窗口位置是否发生变化并更新
+	bool check_sub_windows();
 signals:
 	void start();
 	void stop_timer();
+	void window_detection();
 private slots:
 	void rerun_timeout();
 	void stop_timer_slot();
+	void window_dection_slot();
 private:
 	int m_state=0;
-	int m_stateMachine = 0;	/* 0-正常刷怪 1-意外情况之后回空间站 2-安全退出 3-暂停 4-释放控制权*/
+	int m_stateMachine = 0;	/* 0-正常刷怪 1-意外情况之后回空间站 2-安全退出 3-暂停 4-释放控制权 5-窗口检测*/
 	int m_normalState =-1;
 	bool m_isRunning=false;
 	IWnd * m_wnd =nullptr;

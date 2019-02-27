@@ -21,6 +21,8 @@ public:
 	QPoint GetDroneBayPos(QString key = QString("Lanch drones"));
 	QPoint GetAlliancePos();
 	QPoint GetProbeScannerWraptoWithin_o(QString key = "Wrap to Within");
+	int GetShiledArmour();
+	QString GetWrapWithin();
 private:
 	 QPoint m_posNeocomMenu;
 	 QPoint m_posLocal;
@@ -30,5 +32,7 @@ private:
 	 QPoint m_posSelectItem;
 	 QPoint m_posUndock;
 	 QPoint m_posAlliance;
+	 int m_shiledarmour;	//0- ¶Ü¿¹ 1- ¼×¿¹
+	 QString m_wrapwithin;
 };
 

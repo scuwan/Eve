@@ -3,6 +3,7 @@
 #include <QtWidgets/QApplication>
 #include <QFontDatabase>
 #include <QFile>
+#include "PCRoot.h"
 
 #define UNTT 0
 #define QUNTT 0

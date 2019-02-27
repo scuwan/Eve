@@ -1,6 +1,7 @@
 #include "LwIWnd.h"
 
-
+#include <QString>
+#include <QStringList>
 
 LwIWnd::LwIWnd()
 {
@@ -194,22 +195,34 @@ bool LwIWnd::FindPicture(int x_1, int y_1, int x_2, int y_2, const char * pic_na
 		return false;
 }
 
-string LwIWnd::FindPictureEx(int x_1, int y_1, int x_2, int y_2, const char * pic_name, const char * delta_color, float sim, int dir)
+vector<int> LwIWnd::FindPictureEx(int x_1, int y_1, int x_2, int y_2, const char * pic_name, const char * delta_color, float sim, int dir)
 {
 	if (pGetRes != nullptr)
 	{
 		BSTR str = pGetRes->FindPicEx(x_1, y_1, x_2, y_2, _bstr_t(pic_name), _bstr_t(delta_color), sim, dir);
 		if (str == nullptr)
-			return string();
+			return vector<int>();
 		else
 		{
+			vector<int> rr;
 			string s = _bstr_t(str);
 			SysFreeString(str);
-			return s;
+			QString str = QString::fromStdString(s);
+			QStringList l = str.split("|");
+			for (int i = 0; i < l.size(); ++i)
+			{
+				QStringList ll = l[i].split(",");
+				if (ll.size() != 3)
+					continue;
+				rr.push_back(ll[0].toInt());
+				rr.push_back(ll[1].toInt());
+				rr.push_back(ll[2].toInt());
+			}
+			return rr;
 		}
 	}
 	else
-		return string();
+		return vector<int>();
 }
 
 bool LwIWnd::FindString(int x_1, int y_1, int x_2, int y_2, const char * string, const char * color, int * pos, float sim, int isbkc)
@@ -243,22 +256,34 @@ bool LwIWnd::FindColor(int x_1, int y_1, int x_2, int y_2, const char * color, i
 	return false;
 }
 
-string LwIWnd::FindColorEx(int x_1, int y_1, int x_2, int y_2, const char * color, float sim, int dir)
+vector<int> LwIWnd::FindColorEx(int x_1, int y_1, int x_2, int y_2, const char * color, float sim, int dir)
 {
 	if (pGetRes != nullptr)
 	{
 		BSTR str = pGetRes->FindColorEx(x_1, y_1, x_2, y_2, _bstr_t(color), sim, dir);
 		if (str == nullptr)
-			return string();
+			return vector<int>();
 		else
 		{
+			vector<int> rr;
 			string s = _bstr_t(str);
 			SysFreeString(str);
-			return s;
+			QString str = QString::fromStdString(s);
+			QStringList l = str.split("|");
+			for (int i = 0; i < l.size(); ++i)
+			{
+				QStringList ll = l[i].split(",");
+				if (ll.size() != 3)
+					continue;
+				rr.push_back(ll[0].toInt());
+				rr.push_back(ll[1].toInt());
+				rr.push_back(ll[2].toInt());
+			}
+			return rr;
 		}
 	}
 	else
-		return string();
+		return vector<int>();
 }
 
 bool LwIWnd::LockInput(int lock)

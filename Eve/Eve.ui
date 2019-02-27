@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>800</width>
-    <height>531</height>
+    <width>1419</width>
+    <height>857</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -32,12 +32,62 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>800</width>
+     <width>1419</width>
      <height>23</height>
     </rect>
    </property>
+   <widget class="QMenu" name="menu">
+    <property name="title">
+     <string>设置</string>
+    </property>
+    <addaction name="actionwindowtrans"/>
+   </widget>
+   <widget class="QMenu" name="menu_2">
+    <property name="title">
+     <string>注册</string>
+    </property>
+    <addaction name="actionregister"/>
+    <addaction name="actionrenew"/>
+   </widget>
+   <addaction name="menu_2"/>
+   <addaction name="menu"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
+  <action name="actionwindowtrans">
+   <property name="icon">
+    <iconset>
+     <normaloff>pic/opacity.png</normaloff>pic/opacity.png</iconset>
+   </property>
+   <property name="text">
+    <string>窗口透明度</string>
+   </property>
+   <property name="iconText">
+    <string extracomment="Window Transparency">窗口透明度</string>
+   </property>
+  </action>
+  <action name="actionWindow">
+   <property name="text">
+    <string>窗口</string>
+   </property>
+  </action>
+  <action name="actionregister">
+   <property name="icon">
+    <iconset>
+     <normaloff>pic/register.png</normaloff>pic/register.png</iconset>
+   </property>
+   <property name="text">
+    <string>注册</string>
+   </property>
+  </action>
+  <action name="actionrenew">
+   <property name="icon">
+    <iconset>
+     <normaloff>pic/money.jpg</normaloff>pic/money.jpg</iconset>
+   </property>
+   <property name="text">
+    <string>续费</string>
+   </property>
+  </action>
  </widget>
  <resources/>
  <connections/>

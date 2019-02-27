@@ -239,7 +239,7 @@ void Unitt::LwIWnd_FindColorEx()
 	qDebug() << wnd_1->GetPid();
 	qDebug() << QString::fromLocal8Bit("窗口大小: ") << wnd_1->GetWindowRect().right << " " << wnd_1->GetWindowRect().bottom;
 	int pos[2] = { 0,0 };
-	std::string r = wnd_1->FindColorEx(769, 524, wnd_1->GetWindowRect().right, wnd_1->GetWindowRect().bottom, "F80000-000000|F40000-000000|00F400-000000|00F800-000000|F4F400-000000|FFFF00-000000|E1E101-000000|F5F500-000000");
+	vector<int> r = wnd_1->FindColorEx(769, 524, wnd_1->GetWindowRect().right, wnd_1->GetWindowRect().bottom, "F80000-000000|F40000-000000|00F400-000000|00F800-000000|F4F400-000000|FFFF00-000000|E1E101-000000|F5F500-000000");
 	if (r.size() < 5)
 		qDebug()<<QString::fromLocal8Bit("无人机已回厂库");
 	else

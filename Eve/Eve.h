@@ -6,11 +6,15 @@
 #include <QDockWidget>
 #include <QSharedPointer>
 #include <QTime>
+#include <QSlider>
 #include "ui_Eve.h"
 #include "OutputInfo.h"
 #include "Rolelist.h"
 #include "IScheme.h"
 #include "GrabWindowAbnormalCondition.h"
+#include "PCRoot.h"
+#include <QMenu>
+#include <QActionGroup>
 class Eve : public QMainWindow
 {
 	Q_OBJECT
@@ -27,6 +31,13 @@ private slots:
 	void quit(IScheme*);
 	void cmdBack(IScheme*, bool, int code);
 	void shutDownTime(QString role, QTime t);
+	void EveRoleState(QString name, int);
+	void DelRole(QString name);
+	void RoleOutputInfo(QString role, QString info,QString color);
+	//Menu
+	void windowOpacity();
+	void sliderOpacityValue(int);
+	void windowSwitch(QAction*);
 private:
 	bool is_role_launched(QString role);
 	int role_index(QString role);
@@ -36,6 +47,12 @@ private:
 	Ui::MainWindow ui;
 	Rolelist *rolesui;
 	OutputInfo *cmdinfoui;
+	PCRoot *pcrootui;
+	QDockWidget *dockinfo;
+	QSlider *sliderOpacity;
+	QMenu * menuw;
+	QVector<QAction*> wActions;
+	QActionGroup *wGroup;
 	struct RoleRuntime
 	{
 		RoleRuntime()

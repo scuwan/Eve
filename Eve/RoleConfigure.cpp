@@ -109,6 +109,16 @@ bool RoleConfigure::Loadsettings(QString role)
 	m_posAlliance.setX(l[0].toInt());
 	m_posAlliance.setY(l[1].toInt());
 	settings.endGroup();
+
+	//setting
+	settings.beginGroup("Setting");
+	m_shiledarmour = settings.value("ShiledArmour").toInt();
+	if ((m_shiledarmour != 0) && (m_shiledarmour != 1))
+	{
+		return false;
+	}
+	m_wrapwithin = settings.value("Wrap").toString();
+	settings.endGroup();
 	return true;
 }
 
@@ -444,4 +454,14 @@ QPoint RoleConfigure::GetProbeScannerWraptoWithin_o(QString key)
 	}
 	else
 		return QPoint(0,0);
+}
+
+int RoleConfigure::GetShiledArmour()
+{
+	return m_shiledarmour;
+}
+
+QString RoleConfigure::GetWrapWithin()
+{
+	return m_wrapwithin;
 }

@@ -6,6 +6,9 @@
 #include <Windows.h>
 #include <QMutexLocker>
 #include <QtGlobal>
+#include <QSettings>
+#include <vector>
+using std::vector;
 
 namespace
 {
@@ -129,12 +132,18 @@ Scheme_1::Scheme_1(QString role)
 	m_roleName = role;
 	connect(this, SIGNAL(start()), this, SLOT(Run()));
 	connect(this, SIGNAL(stop_timer()), this, SLOT(stop_timer_slot()));
+	connect(this, SIGNAL(window_detection()), this, SLOT(window_dection_slot()));
 }
 
 
 Scheme_1::~Scheme_1()
 {
-
+	if (m_wnd != nullptr)
+	{
+		m_wnd->Detach();
+		delete m_wnd;
+		m_wnd = nullptr;
+	}
 }
 
 
@@ -188,12 +197,18 @@ QString Scheme_1::SchemeName()
 {
 	return QString("Scheme_1");
 }
+void Scheme_1::WindowPositionDetection()
+{
+	m_stateMachine = 5;
+	emit window_detection();
+}
 /*
  *安全回站
  */
 int Scheme_1::safe_back_station(int s)
 {
-	format_out_put(QString::fromLocal8Bit(" 执行回站操作."));
+	/*format_out_put(QString::fromLocal8Bit(" 执行回站操作."));*/
+	click_move();
 	int pos[2] = { 0,0 };
 	if (is_in_space())	//空间站内
 	{
@@ -336,6 +351,10 @@ int Scheme_1::safe_leave_station(int s)
 		if (!is_in_space())
 		{
 			Sleep(500);
+			if (!check_sub_windows())
+			{
+				return WINDOW_CHECK_FAIL;
+			}
 			//停船
 			QPoint pt = m_configure.GetInstrumentPanelPos("Stop The Ship");
 			l_click(pt);
@@ -452,7 +471,7 @@ int Scheme_1::normal(int s=0)
 					m_stateMachine = 2;
 					return OK;
 				}
-				ret=try_repair(s);
+				ret = try_repair(s);
 				if (RED == ret)
 					return RED;
 				m_normalState = 1;
@@ -463,12 +482,14 @@ int Scheme_1::normal(int s=0)
 				format_out_put(QString::fromLocal8Bit(" 出站操作异常，拒绝出站请求."));
 				return NOK;
 			}
-			else if(ret == RED)	//来红
+			else if (ret == RED)	//来红
 			{
 				grab(m_wnd->GetWindowId(), GetRole());
 				format_out_put(QString::fromLocal8Bit(" 出站操作异常，拒绝出站请求."));
 				return RED;
 			}
+			else
+				return ret;
 		}
 		else
 		{
@@ -517,7 +538,7 @@ int Scheme_1::normal(int s=0)
 						QPoint o;
 						o = m_configure.GetProbeScannerWraptoWithin_o("Wrap to Within");
 						QPoint wrap_to_within(pos[0] + o.x(), pos[1] + o.y());
-						o = m_configure.GetProbeScannerWraptoWithin_o("Within 30 km");
+						o = m_configure.GetProbeScannerWraptoWithin_o(m_configure.GetWrapWithin());
 						QPoint within_n_km(pos[0] + o.x(), pos[1] + o.y());
 						r_click(pos[0] + 5, pos[1] + 2);
 						Sleep(2000);
@@ -1171,7 +1192,7 @@ bool Scheme_1::is_drone_backing()
 	QPoint pt;
 	pt = m_configure.GetDronesPos();
 	//黄
-	std::string r = m_wnd->FindColorEx(pt.x(), pt.y(), m_wnd->GetWindowRect().right, m_wnd->GetWindowRect().bottom, "F4F400-000000|FFFF00-000000|E1E101-000000|F5F500-000000");
+	vector<int> r = m_wnd->FindColorEx(pt.x(), pt.y(), m_wnd->GetWindowRect().right, m_wnd->GetWindowRect().bottom, "F4F400-000000|FFFF00-000000|E1E101-000000|F5F500-000000");
 	if (r.size() == 0)
 		return false;
 	else
@@ -1183,7 +1204,7 @@ bool Scheme_1::is_flash_yellow()
 	QPoint pt;
 	pt = m_configure.GetDronesPos();
 	//判绿
-	std::string r = m_wnd->FindColorEx(pt.x(), pt.y(), m_wnd->GetWindowRect().right, m_wnd->GetWindowRect().bottom, "00F400-000000|00F800-000000");
+	vector<int> r = m_wnd->FindColorEx(pt.x(), pt.y(), m_wnd->GetWindowRect().right, m_wnd->GetWindowRect().bottom, "00F400-000000|00F800-000000");
 	if (r.size() == 0)
 		return false;
 	else
@@ -1224,71 +1245,95 @@ bool Scheme_1::is_in_space()
 
 bool Scheme_1::is_out_space()
 {
-	bool ret = m_wnd->FindPicture(0, 0, m_wnd->GetWindowRect().right, m_wnd->GetWindowRect().bottom, "pic/Overview.bmp", nullptr, "000000",0.7);
+	return m_wnd->FindPicture(0, 0, m_wnd->GetWindowRect().right, m_wnd->GetWindowRect().bottom, "pic/Overview.bmp", nullptr, "000000", 0.7);
+}
+
+bool Scheme_1::find_undock(int * pos)
+{
+	bool ret = m_wnd->FindPicture(0, 0, m_wnd->GetWindowRect().right, m_wnd->GetWindowRect().bottom, "pic/Undock.bmp", pos, "000000", 0.7);
+	return ret;
+}
+
+bool Scheme_1::find_local(int * pos)
+{
+	bool ret = m_wnd->FindPicture(0, 0, m_wnd->GetWindowRect().right, m_wnd->GetWindowRect().bottom, "pic/Local.bmp", pos, "000000", 0.7);
 	return ret;
 }
 
 bool Scheme_1::find_station(int * pos)
 {
 	QPoint pt_overview = m_configure.GetOverviewPos();
-	bool ret = m_wnd->FindPicture(pt_overview.x(), pt_overview.y(), m_wnd->GetWindowRect().right, m_wnd->GetWindowRect().bottom, "pic/Station1.bmp", pos, "000000", 0.8);
-	if (ret)
+	//bool ret = m_wnd->FindPicture(pt_overview.x(), pt_overview.y(), m_wnd->GetWindowRect().right, m_wnd->GetWindowRect().bottom, "pic/Station1.bmp", pos, "000000", 0.7);
+	//if (ret)
+	//{
+	//	pos[0] += 10;
+	//	pos[1] += 8;
+	//	return ret;
+	//}
+	//ret = m_wnd->FindPicture(pt_overview.x(), pt_overview.y(), m_wnd->GetWindowRect().right, m_wnd->GetWindowRect().bottom, "pic/Station2.bmp", pos, "000000", 0.7);
+	//if (ret)
+	//{
+	//	pos[0] += 10;
+	//	pos[1] += 8;
+	//	return ret;
+	//}
+	//ret = m_wnd->FindPicture(pt_overview.x(), pt_overview.y(), m_wnd->GetWindowRect().right, m_wnd->GetWindowRect().bottom, "pic/Station3.bmp", pos, "000000", 0.7);
+	//if (ret)
+	//{
+	//	pos[0] += 10;
+	//	pos[1] += 8;
+	//	return ret;
+	//}
+	//ret = m_wnd->FindPicture(pt_overview.x(), pt_overview.y(), m_wnd->GetWindowRect().right, m_wnd->GetWindowRect().bottom, "pic/Station4.bmp", pos, "000000", 0.7);
+	//if (ret)
+	//{
+	//	pos[0] += 10;
+	//	pos[1] += 8;
+	//	return ret;
+	//}
+	//ret = m_wnd->FindPicture(pt_overview.x(), pt_overview.y(), m_wnd->GetWindowRect().right, m_wnd->GetWindowRect().bottom, "pic/Station5.bmp", pos, "000000", 0.7);
+	//if (ret)
+	//{
+	//	pos[0] += 10;
+	//	pos[1] += 8;
+	//	return ret;
+	//}
+	//ret = m_wnd->FindPicture(pt_overview.x(), pt_overview.y(), m_wnd->GetWindowRect().right, m_wnd->GetWindowRect().bottom, "pic/Station6.bmp", pos, "000000", 0.7);
+	//if (ret)
+	//{
+	//	pos[0] += 10;
+	//	pos[1] += 8;
+	//	return ret;
+	//}
+	//ret = m_wnd->FindPicture(pt_overview.x(), pt_overview.y(), m_wnd->GetWindowRect().right, m_wnd->GetWindowRect().bottom, "pic/Station7.bmp", pos, "000000", 0.7);
+	//if (ret)
+	//{
+	//	pos[0] += 10;
+	//	pos[1] += 8;
+	//	return ret;
+	//}
+	//ret = m_wnd->FindPicture(pt_overview.x(), pt_overview.y(), m_wnd->GetWindowRect().right, m_wnd->GetWindowRect().bottom, "pic/Station8.bmp", pos, "000000", 0.7);
+	//if (ret)
+	//{
+	//	pos[0] += 10;
+	//	pos[1] += 8;
+	//	return ret;
+	//}
+	//ret = m_wnd->FindPicture(pt_overview.x(), pt_overview.y(), m_wnd->GetWindowRect().right, m_wnd->GetWindowRect().bottom, "pic/StationNormal.bmp", pos, "000000", 0.7);
+	vector<int> rr = m_wnd->FindPictureEx(pt_overview.x(), pt_overview.y(), m_wnd->GetWindowRect().right, m_wnd->GetWindowRect().bottom, "pic/Station1.bmp|pic/Station2.bmp|pic/Station3.bmp|pic/Station4.bmp|pic/Station5.bmp|pic/Station6.bmp|pic/Station7.bmp|pic/Station8.bmp", "000000", 0.7);
+	if (rr.size() < 3)
 	{
-		pos[0] += 10;
-		pos[1] += 8;
-		return ret;
+		return false;
 	}
-	ret = m_wnd->FindPicture(pt_overview.x(), pt_overview.y(), m_wnd->GetWindowRect().right, m_wnd->GetWindowRect().bottom, "pic/Station2.bmp", pos, "000000", 0.8);
-	if (ret)
+	else
 	{
-		pos[0] += 10;
-		pos[1] += 8;
-		return ret;
+		if (pos != nullptr)
+		{
+			pos[0] = rr[1] + 10;
+			pos[1] = rr[2] + 8;
+		}
+		return true;
 	}
-	ret = m_wnd->FindPicture(pt_overview.x(), pt_overview.y(), m_wnd->GetWindowRect().right, m_wnd->GetWindowRect().bottom, "pic/Station3.bmp", pos, "000000", 0.8);
-	if (ret)
-	{
-		pos[0] += 10;
-		pos[1] += 8;
-		return ret;
-	}
-	ret = m_wnd->FindPicture(pt_overview.x(), pt_overview.y(), m_wnd->GetWindowRect().right, m_wnd->GetWindowRect().bottom, "pic/Station4.bmp", pos, "000000", 0.8);
-	if (ret)
-	{
-		pos[0] += 10;
-		pos[1] += 8;
-		return ret;
-	}
-	ret = m_wnd->FindPicture(pt_overview.x(), pt_overview.y(), m_wnd->GetWindowRect().right, m_wnd->GetWindowRect().bottom, "pic/Station5.bmp", pos, "000000", 0.8);
-	if (ret)
-	{
-		pos[0] += 10;
-		pos[1] += 8;
-		return ret;
-	}
-	ret = m_wnd->FindPicture(pt_overview.x(), pt_overview.y(), m_wnd->GetWindowRect().right, m_wnd->GetWindowRect().bottom, "pic/Station6.bmp", pos, "000000", 0.8);
-	if (ret)
-	{
-		pos[0] += 10;
-		pos[1] += 8;
-		return ret;
-	}
-	ret = m_wnd->FindPicture(pt_overview.x(), pt_overview.y(), m_wnd->GetWindowRect().right, m_wnd->GetWindowRect().bottom, "pic/Station7.bmp", pos, "000000", 0.8);
-	if (ret)
-	{
-		pos[0] += 10;
-		pos[1] += 8;
-		return ret;
-	}
-	ret = m_wnd->FindPicture(pt_overview.x(), pt_overview.y(), m_wnd->GetWindowRect().right, m_wnd->GetWindowRect().bottom, "pic/Station8.bmp", pos, "000000", 0.8);
-	if (ret)
-	{
-		pos[0] += 10;
-		pos[1] += 8;
-		return ret;
-	}
-	ret = m_wnd->FindPicture(pt_overview.x(), pt_overview.y(), m_wnd->GetWindowRect().right, m_wnd->GetWindowRect().bottom, "pic/StationNormal.bmp", pos, "000000", 0.8);
-	return ret;
 }
 
 bool Scheme_1::find_overview(int * pos)
@@ -1320,6 +1365,16 @@ bool Scheme_1::find_lockedtarget(int * pos)
 bool Scheme_1::find_select_item(int * pos)
 {
 	return m_wnd->FindPicture(0, 0, m_wnd->GetWindowRect().right, m_wnd->GetWindowRect().bottom, "pic/select_item.bmp", pos, "000000", 0.7);
+}
+
+bool Scheme_1::find_drones(int * pos)
+{
+	return m_wnd->FindPicture(0, 0, m_wnd->GetWindowRect().right, m_wnd->GetWindowRect().bottom, "pic/Drones.bmp", pos, "000000", 0.7);
+}
+
+bool Scheme_1::find_panel(int * pos)
+{
+	return m_wnd->FindPicture(0, 0, m_wnd->GetWindowRect().right, m_wnd->GetWindowRect().bottom, "pic/RightArrow.bmp", pos, "000000", 0.7);
 }
 
 void Scheme_1::l_click(QPoint pt)
@@ -1354,6 +1409,20 @@ void Scheme_1::r_click(int x, int y)
 	m_wnd->MouseMoveTo(x, y);
 	Sleep(200);
 	m_wnd->MouseRightClicked();
+}
+
+void Scheme_1::click_move()
+{
+	LockWindow t(m_wnd);
+	m_wnd->MouseMoveTo(512, 300);
+	m_wnd->MouseLeftDown();
+	Sleep(10);
+	m_wnd->MouseMoveTo(514, 300);
+	Sleep(9);
+	m_wnd->MouseMoveTo(520, 300);
+	Sleep(10);
+	m_wnd->MouseMoveTo(530, 300);
+	m_wnd->MouseLeftUp();
 }
 
 void Scheme_1::start_rerun_timer()
@@ -1424,20 +1493,37 @@ bool Scheme_1::find_web_overview(int * pos)
 
 bool Scheme_1::check_broken()
 {
-	bool ret = m_wnd->FindPicture(0, 0, m_wnd->GetWindowRect().right, m_wnd->GetWindowRect().bottom, "pic/扰断无人机.bmp", nullptr, "000000", 0.7);
+	/*bool ret = m_wnd->FindPicture(0, 0, m_wnd->GetWindowRect().right, m_wnd->GetWindowRect().bottom, "pic/扰断无人机.bmp", nullptr, "000000", 0.7);
 	if (ret)
 		return true;
 	ret = m_wnd->FindPicture(0, 0, m_wnd->GetWindowRect().right, m_wnd->GetWindowRect().bottom, "pic/扰断.bmp", nullptr, "000000", 0.7);
 	if (ret)
 		return true;
 	ret = m_wnd->FindPicture(0, 0, m_wnd->GetWindowRect().right, m_wnd->GetWindowRect().bottom, "pic/扰频.bmp", nullptr, "000000", 0.7);
-	return ret;
+	return ret;*/
+	vector<int> rr = m_wnd->FindPictureEx(0, 0, m_wnd->GetWindowRect().right, m_wnd->GetWindowRect().bottom, "pic/扰断无人机.bmp|pic/扰断.bmp|pic/扰频.bmp", "000000", 0.7);
+	if (rr.size() != 0)
+		return true;
+	else
+		return false;
 }
 
 bool Scheme_1::find_broken_overview(int * pos)
 {
 	QPoint pt = m_configure.GetOverviewPos();
-	bool ret = m_wnd->FindPicture(pt.x(), pt.y(), m_wnd->GetWindowRect().right, m_wnd->GetWindowRect().bottom, "pic/扰乱无人机总览.bmp", pos, "000000", 0.7);
+	vector<int> rr = m_wnd->FindPictureEx(pt.x(), pt.y(), m_wnd->GetWindowRect().right, m_wnd->GetWindowRect().bottom, "pic/扰乱无人机总览.bmp|pic/扰断总览.bmp|pic/扰频总览.bmp|pic/扰频总览2.bmp", "000000", 0.7);
+	if (rr.size() < 3)
+		return false;
+	else
+	{
+		if (pos != nullptr)
+		{
+			pos[0] = rr[1] - 10;
+			pos[1] = rr[2] + 5;
+		}
+		return true;
+	}
+	/*bool ret = m_wnd->FindPicture(pt.x(), pt.y(), m_wnd->GetWindowRect().right, m_wnd->GetWindowRect().bottom, "pic/扰乱无人机总览.bmp", pos, "000000", 0.7);
 	if (ret)
 	{
 		if (pos != nullptr)
@@ -1477,14 +1563,14 @@ bool Scheme_1::find_broken_overview(int * pos)
 		}
 		return true;
 	}
-	return false;
+	return false;*/
 }
 
 bool Scheme_1::check_red()
 {
 	QPoint pt_a = m_configure.GetAlliancePos();
 	QPoint pt_l = m_configure.GetLocalPos();
-	int pos[2];
+	/*int pos[2];
 	bool ret = m_wnd->FindPicture(pt_l.x(), pt_l.y(), pt_l.x()+300, m_wnd->GetWindowRect().bottom, "pic/Red.bmp",pos , "000000", 0.9);
 	if (ret)
 	{
@@ -1501,6 +1587,13 @@ bool Scheme_1::check_red()
 	if (ret)
 	{
 		if (pos[1] < pt_a.y())
+			return true;
+	}*/
+	vector<int> rr = m_wnd->FindPictureEx(pt_l.x(), pt_l.y(), pt_l.x() + 300, m_wnd->GetWindowRect().bottom, "pic/Red.bmp|pic/Red1.bmp|pic/Red2.bmp", "000000", 0.9);
+	int cnt = rr.size() / 3;
+	for (int i = 0; i < cnt; ++i)
+	{
+		if (rr[i * 3 + 2] < pt_a.y())
 			return true;
 	}
 	return false;
@@ -1605,13 +1698,26 @@ int Scheme_1::withstand(int s)
 bool Scheme_1::check_hp()
 {
 	QPoint pt_panel = m_configure.GetInstrumentPanelPos();
+	int sa = m_configure.GetShiledArmour();
 	int p_hp[2];
-	//p_hp[0] = pt_panel.x() + 36;
-	//p_hp[1] = pt_panel.y() - 65;	//甲抗
+	if(sa==1)
+	{ 
+		p_hp[0] = pt_panel.x() + 36;
+		p_hp[1] = pt_panel.y() - 65;	//甲抗
+	}
+	else if (sa == 0)
+	{
+		p_hp[0] = pt_panel.x() + 5;
+		p_hp[1] = pt_panel.y() - 55;	//盾抗 75%
+	}
+	else
+	{
+		p_hp[0] = pt_panel.x() + 5;
+		p_hp[1] = pt_panel.y() - 55;	//盾抗 75%
+	}
 	//p_hp[0] = pt_panel.x() - 11;
 	//p_hp[1] = pt_panel.y() - 30;	//盾抗
-	p_hp[0] = pt_panel.x() + 5;
-	p_hp[1] = pt_panel.y() - 55;	//盾抗 75%
+	
 
 	if (m_wnd->FindColor(p_hp[0], p_hp[1], p_hp[0] + 5, p_hp[1] + 3, "FF1F1F-000000"))
 	{
@@ -1766,11 +1872,11 @@ bool Scheme_1::check_green()
 	l_click(pt_youjun);
 	Sleep(1000);
 	bool ret = false;
-	ret=m_wnd->FindPicture(pt_overview.x(), pt_overview.y(), pt_overview.x() + 200, pt_overview.y() + 200, "pic/Green_1.bmp", nullptr, "000000", 0.7);
+	ret=m_wnd->FindPicture(pt_overview.x(), pt_overview.y(), pt_overview.x() + 200, pt_overview.y() + 400, "pic/Green_1.bmp", nullptr, "000000", 0.7);
 	if (ret)return true;
-	ret = m_wnd->FindPicture(pt_overview.x(), pt_overview.y(), pt_overview.x() + 200, pt_overview.y() + 200, "pic/Green_2.bmp", nullptr, "000000", 0.7);
+	ret = m_wnd->FindPicture(pt_overview.x(), pt_overview.y(), pt_overview.x() + 200, pt_overview.y() + 400, "pic/Green_2.bmp", nullptr, "000000", 0.7);
 	if (ret)return true;
-	ret = m_wnd->FindPicture(pt_overview.x(), pt_overview.y(), pt_overview.x() + 200, pt_overview.y() + 200, "pic/Green_3.bmp", nullptr, "000000", 0.7);
+	ret = m_wnd->FindPicture(pt_overview.x(), pt_overview.y(), pt_overview.x() + 200, pt_overview.y() + 400, "pic/Green_3.bmp", nullptr, "000000", 0.7);
 	if (ret)return true;
 	return false;
 }
@@ -1860,8 +1966,163 @@ void Scheme_1::print_state_machine(int cs,int s)
 bool Scheme_1::is_an_egg()
 {
 	QPoint pt_drones = m_configure.GetDronesPos();
-	bool ret = m_wnd->FindPicture(pt_drones.x(), pt_drones.y(), m_wnd->GetWindowRect().right, m_wnd->GetWindowRect().bottom, "pic/Drones.bmp", nullptr, "000000", 0.7);
+	bool ret = m_wnd->FindPicture(pt_drones.x()-1, pt_drones.y()-1, m_wnd->GetWindowRect().right, m_wnd->GetWindowRect().bottom, "pic/Drones.bmp", nullptr, "000000", 0.7);
 	return !ret;
+}
+
+bool Scheme_1::check_sub_windows()
+{
+	QString setting = QString("./setting/") + m_roleName + "-Setting.ini";
+	QSettings settings(setting, QSettings::IniFormat);
+	settings.beginGroup("Window");
+	int pos[2] = { 0,0 };
+	QPoint porigin;
+	bool update_flag = false;
+	vector<int> rr = m_wnd->FindPictureEx(0, 0, m_wnd->GetWindowRect().right, m_wnd->GetWindowRect().bottom, "pic/select_item.bmp|pic/Overview.bmp|pic/RightArrow.bmp|pic/Local.bmp|pic/Drones.bmp", "000000", 0.7);
+	if (rr.size() != 5 * 3)
+	{
+		format_out_put(QString::fromLocal8Bit("检测窗口失败，窗口检测失败."), "#ff0000");
+		return false;
+	}
+	for (int i = 0; i < 5; ++i)
+	{
+		int id = rr[i * 3];
+		pos[0] = rr[i * 3 + 1];
+		pos[1] = rr[i * 3 + 2];
+		switch (id)
+		{
+		case 1:
+			porigin = m_configure.GetSelectItemPos();
+			if (porigin.x() != pos[0] || porigin.y() != pos[1])
+			{
+				settings.setValue("Select Item", QString::number(pos[0]) + " " + QString::number(pos[1]));
+				update_flag = true;
+			}
+			break;
+		case 2:
+			porigin = m_configure.GetOverviewPos();
+			if (porigin.x() != pos[0] || porigin.y() != pos[1])
+			{
+				settings.setValue("Overview", QString::number(pos[0]) + " " + QString::number(pos[1]));
+				update_flag = true;
+			}
+			break;
+		case 3:
+			porigin = m_configure.GetInstrumentPanelPos();
+			if (porigin.x() != pos[0] + 9 || porigin.y() != pos[1] + 4)
+			{
+				settings.setValue("Instrument Panel", QString::number(pos[0] + 9) + " " + QString::number(pos[1] + 4));
+				update_flag = true;
+			}
+			break;
+		case 4:
+			porigin = m_configure.GetLocalPos();
+			if (porigin.x() != pos[0] || porigin.y() != pos[1])
+			{
+				settings.setValue("Local", QString::number(pos[0]) + " " + QString::number(pos[1]));
+				update_flag = true;
+			}
+			break;
+		case 5:
+			porigin = m_configure.GetDronesPos();
+			if (porigin.x() != pos[0] || porigin.y() != pos[1])
+			{
+				settings.setValue("Drones", QString::number(pos[0]) + " " + QString::number(pos[1]));
+				update_flag = true;
+			}
+			break;
+		default:
+			break;
+		}
+	}
+	settings.endGroup();
+	if (update_flag)
+	{
+		m_configure.Loadsettings(m_roleName);
+	}
+	//bool ret = find_select_item(pos);
+	//if (!ret)
+	//{
+	//	format_out_put(QString::fromLocal8Bit("未检测到Select_Item，窗口检测失败."), "#ff0000");
+	//	return false;
+	//}
+	//porigin = m_configure.GetSelectItemPos();
+	//if (porigin.x() != pos[0] || porigin.y() != pos[1])
+	//{
+	//	settings.setValue("Select Item", QString::number(pos[0]) + " " + QString::number(pos[1]));
+	//	update_flag = true;
+	//}
+	//Sleep(500);
+	//ret = find_overview(pos);
+	//if (!ret)
+	//{
+	//	format_out_put(QString::fromLocal8Bit("未检测到Overview，窗口检测失败."), "#ff0000");
+	//	return false;
+	//}
+	//porigin = m_configure.GetOverviewPos();
+	//if (porigin.x() != pos[0] || porigin.y() != pos[1])
+	//{
+	//	settings.setValue("Overview", QString::number(pos[0]) + " " + QString::number(pos[1]));
+	//	update_flag = true;
+	//}
+	//Sleep(500);
+	//ret = find_panel(pos);
+	//if (!ret)
+	//{
+	//	format_out_put(QString::fromLocal8Bit("未检测到Panel，窗口检测失败."), "#ff0000");
+	//	return false;
+	//}
+	//porigin = m_configure.GetInstrumentPanelPos();
+	//if (porigin.x() != pos[0] + 9 || porigin.y() != pos[1] + 4)
+	//{
+	//	settings.setValue("Instrument Panel", QString::number(pos[0] + 9) + " " + QString::number(pos[1] + 4));
+	//	update_flag = true;
+	//}
+	//Sleep(500);
+	//ret = find_local(pos);
+	//if (!ret)
+	//{
+	//	format_out_put(QString::fromLocal8Bit("未检测到Local，窗口检测失败."), "#ff0000");
+	//	return false;
+	//}
+	//porigin = m_configure.GetLocalPos();
+	//if (porigin.x() != pos[0] || porigin.y() != pos[1])
+	//{
+	//	settings.setValue("Local", QString::number(pos[0]) + " " + QString::number(pos[1]));
+	//	update_flag = true;
+	//}
+	//if (update_flag)
+	//{
+	//	m_configure.Loadsettings(m_roleName);
+	//}
+	//switch_overview_page("空间");
+	//Sleep(500);
+	//if (!find_station(pos))
+	//{
+	//	format_out_put(QString::fromLocal8Bit("窗口检测，找不到空间站"), "#ff0000");
+	//	return false;
+	//}
+	////if (!open_probe_scanner())
+	////{
+	////	format_out_put(QString::fromLocal8Bit("窗口检测，找不到异常窗口"), "#ff0000");
+	////	return false;
+	////}
+	////switch_overview_page("刷怪");
+	////DELAY_N_SECONDS_WITH_NO_RED_HP_RETURN(2, m_stateMachine);
+	////close_probe_scanner();
+	//ret = find_drones(pos);
+	//if (!ret)
+	//{
+	//format_out_put(QString::fromLocal8Bit("未检测到Drones，窗口检测失败."), "#ff0000");
+	//return false;
+	//}
+	//porigin = m_configure.GetDronesPos();
+	//if (porigin.x() != pos[0] || porigin.y() != pos[1])
+	//{
+	//settings.setValue("Drones", QString::number(pos[0]) + " " + QString::number(pos[1]));
+	//update_flag = true;
+	//}
+	return true;
 }
 
 void Scheme_1::stop_timer_slot()
@@ -1874,6 +2135,113 @@ void Scheme_1::stop_timer_slot()
 			m_timer->stop();
 		}
 	}
+}
+
+void Scheme_1::window_dection_slot()
+{
+	format_out_put(QString::fromLocal8Bit("窗口检测"));
+	QString title("EVE - ");
+	title += m_roleName;
+	const wchar_t * wtitle = reinterpret_cast<const wchar_t *>(title.utf16());
+	HWND wid = FindWindow(__T("triuiScreen"), wtitle);
+	if (wid == NULL)
+	{
+		m_errorCode = 4;
+		format_out_put(QString::fromLocal8Bit(errorCode[m_errorCode]));
+		emit eState(this, false, 2);
+		emit quit(this);
+		if (m_wnd != nullptr)
+		{
+			m_wnd->Detach();
+			delete m_wnd;
+			m_wnd = nullptr;
+		}
+		return;
+	}
+	if (m_wnd == nullptr)
+	{
+		m_wnd = new LwIWnd();
+		bool ret = false;
+		if (!m_wnd->Attch((int)wid))
+		{
+			ret = try_attach_window();
+			if (false == ret)
+			{
+				m_errorCode = 1;	//无法Attach窗口
+				format_out_put(QString::fromLocal8Bit(errorCode[m_errorCode]));
+				delete m_wnd;
+				m_wnd = nullptr;
+				emit eState(this, false, 2);
+				emit quit(this);
+				return;
+			}
+			else
+			{
+				format_out_put(QString::fromLocal8Bit("绑定窗口成功."));
+			}
+		}
+	}
+	QString setting = QString("./setting/") + m_roleName + "-Setting.ini";
+	QSettings settings(setting, QSettings::IniFormat);
+	settings.beginGroup("Window");
+	RECT wrect;
+	GetWindowRect(wid, &wrect);
+	settings.setValue("Window Geometry", QString::number(wrect.right-wrect.left) + " " + QString::number(wrect.bottom-wrect.top));
+
+	int pos[2] = { 0,0 };
+	bool ret = find_undock(pos);
+	if (!ret)
+	{
+		format_out_put(QString::fromLocal8Bit("未检测到Undock,窗口检测失败."), "#ff0000");
+		emit WindowPositionDetectionFinish(false);
+		return;
+	}
+	settings.setValue("Undock", QString::number(pos[0]) + " " + QString::number(pos[1]));
+	l_click(pos[0],pos[1]);
+	Sleep(20000);
+	ret = find_select_item(pos);
+	if (!ret)
+	{
+		format_out_put(QString::fromLocal8Bit("未检测到Select_Item，窗口检测失败."), "#ff0000");
+		emit WindowPositionDetectionFinish(false);
+		return;
+	}
+	settings.setValue("Select Item", QString::number(pos[0]) + " " + QString::number(pos[1]));
+	ret = find_overview(pos);
+	if (!ret)
+	{
+		format_out_put(QString::fromLocal8Bit("未检测到Overview，窗口检测失败."), "#ff0000");
+		emit WindowPositionDetectionFinish(false);
+		return;
+	}
+	settings.setValue("Overview", QString::number(pos[0]) + " " + QString::number(pos[1]));
+	ret = find_drones(pos);
+	if (!ret)
+	{
+		format_out_put(QString::fromLocal8Bit("未检测到Drones，窗口检测失败."), "#ff0000");
+		emit WindowPositionDetectionFinish(false);
+		return;
+	}
+	settings.setValue("Drones", QString::number(pos[0]) + " " + QString::number(pos[1]));
+	ret = find_panel(pos);
+	if (!ret)
+	{
+		format_out_put(QString::fromLocal8Bit("未检测到Panel，窗口检测失败."), "#ff0000");
+		emit WindowPositionDetectionFinish(false);
+		return;
+	}
+	settings.setValue("Instrument Panel", QString::number(pos[0]+9) + " " + QString::number(pos[1]+4));
+	ret = find_local(pos);
+	if (!ret)
+	{
+		format_out_put(QString::fromLocal8Bit("未检测到Local，窗口检测失败."), "#ff0000");
+		emit WindowPositionDetectionFinish(false);
+		return;
+	}
+	settings.setValue("Local", QString::number(pos[0]) + " " + QString::number(pos[1]));
+	settings.endGroup();
+	format_out_put(QString::fromLocal8Bit("窗口检测完毕."), "#00ff00");
+	emit WindowPositionDetectionFinish(true);
 }
 
 void Scheme_1::rerun_timeout()
@@ -1940,6 +2308,25 @@ void Scheme_1::run()
 	}
 	emit eState(this, true, 2);
 	bool n_quit = true;
+	//检查
+	if (is_out_space())
+	{
+		if (!check_sub_windows())
+		{
+			format_out_put(QString::fromLocal8Bit("窗口检测失败,退出线程."));
+			m_wnd->Detach();
+			delete m_wnd;
+			m_wnd = nullptr;
+			emit eState(this, true, 0);	/* 成功安全退出*/
+			emit quit(this);
+			return;
+		}
+	}
+	else
+	{
+		format_out_put(QString::fromLocal8Bit("空间站内"));
+	}
+	Sleep(2000);
 	//主循环
 	while (n_quit)
 	{
@@ -2035,6 +2422,13 @@ void Scheme_1::run()
 				format_out_put(QString::fromLocal8Bit(" 到达下线时间!!! 下线"), "#ff0000");
 				m_stateMachine = 1;
 				;
+			}
+			else if (WINDOW_CHECK_FAIL == ret)
+			{
+				format_out_put(QString::fromLocal8Bit(" 窗口检测失败,下线"), "#ff0000");
+				safe_back_station(0);
+				m_stateMachine = -1;
+				quit_flag = true;
 			}
 			break;
 		case 4://释放控制权

@@ -72,6 +72,18 @@
     <ClCompile Include="GrabWindowAbnormalCondition.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="PCRoot.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="PCEveClients.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="SchemeWindow.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="EveRoleRegister.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="Eve.h">
@@ -98,6 +110,18 @@
     <QtMoc Include="GrabWindowAbnormalCondition.h">
       <Filter>Header Files</Filter>
     </QtMoc>
+    <QtMoc Include="PCRoot.h">
+      <Filter>Header Files</Filter>
+    </QtMoc>
+    <QtMoc Include="PCEveClients.h">
+      <Filter>Header Files</Filter>
+    </QtMoc>
+    <QtMoc Include="SchemeWindow.h">
+      <Filter>Header Files</Filter>
+    </QtMoc>
+    <QtMoc Include="EveRoleRegister.h">
+      <Filter>Header Files</Filter>
+    </QtMoc>
   </ItemGroup>
   <ItemGroup>
     <QtUic Include="Eve.ui">
@@ -110,6 +134,15 @@
       <Filter>Form Files</Filter>
     </QtUic>
     <QtUic Include="OutputInfo.ui">
+      <Filter>Form Files</Filter>
+    </QtUic>
+    <QtUic Include="PCRoot.ui">
+      <Filter>Form Files</Filter>
+    </QtUic>
+    <QtUic Include="SchemeWindow.ui">
+      <Filter>Form Files</Filter>
+    </QtUic>
+    <QtUic Include="EveRoleRegister.ui">
       <Filter>Form Files</Filter>
     </QtUic>
   </ItemGroup>

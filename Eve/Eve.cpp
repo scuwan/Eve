@@ -1,5 +1,6 @@
 #include "Eve.h"
 #include "Scheme_1.h"
+#include "PCEveClients.h"
 #include <QSplitter>
 #include <QVBoxLayout>
 #include <QDockWidget>
@@ -9,14 +10,39 @@ Eve::Eve(QMainWindow *parent)
 {
 	m_runtime.reserve(128);
 	ui.setupUi(this);
+	sliderOpacity = new QSlider(Qt::Horizontal,this);
+	sliderOpacity->setMinimum(0);
+	sliderOpacity->setMaximum(100);
+	sliderOpacity->setSingleStep(1);
+	sliderOpacity->setBaseSize(QSize(200, 40));
+	sliderOpacity->setMaximumSize(200, 40);
+	sliderOpacity->setMinimumSize(200, 40);
+	sliderOpacity->setWindowFlags(windowFlags() ^ Qt::WindowMaximizeButtonHint | Qt::Dialog);
+	sliderOpacity->setWindowIcon(QIcon(QString("pic/wicon.png")));
+	sliderOpacity->hide();
+	QIcon icon("pic/window.png");
+	menuw = new QMenu(QString::fromLocal8Bit("窗口"),this);
+	menuw->setIcon(icon);
+	ui.menu->addMenu(menuw);
+	wGroup = new QActionGroup(this);
+	wGroup->setExclusive(false);
 	m_grab = new GrabWindowAbnormalCondition(this);
 	IScheme::Init();
 	QVBoxLayout *layout = new QVBoxLayout(this);
+	layout->setSpacing(0);
+	QSplitter *splitter = new QSplitter(Qt::Horizontal, this);
 	rolesui = new Rolelist(this);
-	layout->addWidget(rolesui);
+	pcrootui = new PCRoot(this);
+	splitter->addWidget(pcrootui);
+	splitter->addWidget(rolesui);
+	splitter->setStretchFactor(0, 1);
+	splitter->setStretchFactor(1, 3);
+	splitter->setOpaqueResize(true);
+	//layout->addWidget(rolesui);
+	layout->addWidget(splitter);
 	ui.centralwidget->setLayout(layout);
 
-	QDockWidget *dockinfo = new  QDockWidget(QString::fromLocal8Bit("用户命令历史"), this);
+	dockinfo = new  QDockWidget(QString::fromLocal8Bit("用户命令历史"), this);
 	dockinfo->setFeatures(QDockWidget::NoDockWidgetFeatures);
 	dockinfo->setAllowedAreas(Qt::BottomDockWidgetArea);
 	cmdinfoui = new OutputInfo(dockinfo);
@@ -29,7 +55,7 @@ Eve::Eve(QMainWindow *parent)
 		RoleInfoWindow iw;
 		iw.role = ls[i];
 		iw.m_roleinfodock = new  QDockWidget(iw.role, this);
-		iw.m_roleinfodock->setFeatures(QDockWidget::AllDockWidgetFeatures);
+		iw.m_roleinfodock->setFeatures(QDockWidget::DockWidgetMovable | QDockWidget::DockWidgetFloatable);
 		iw.m_roleinfodock->setAllowedAreas(Qt::BottomDockWidgetArea);
 		iw.m_roleinfoui = new OutputInfo(iw.m_roleinfodock);
 		iw.m_roleinfodock->setWidget(iw.m_roleinfoui);
@@ -44,6 +70,13 @@ Eve::Eve(QMainWindow *parent)
 	connect(rolesui, SIGNAL(releaseControl(QString)), this, SLOT(releaseControl(QString)));
 	connect(rolesui, SIGNAL(cmdInfo(const QString&,const QString&)),cmdinfoui, SLOT(StandOut(const QString&,const QString&)));
 	connect(rolesui, SIGNAL(shutDownTime(QString, QTime)), this, SLOT(shutDownTime(QString, QTime)));
+	connect(PCEveClients::Instance(), SIGNAL(EveRoleState(QString, int)), this, SLOT(EveRoleState(QString, int)));
+	connect(PCEveClients::Instance(), SIGNAL(DelRole(QString)), this, SLOT(DelRole(QString)));
+	connect(rolesui, SIGNAL(RoleDetectedInfo(QString, QString, QString)), this, SLOT(RoleOutputInfo(QString, QString, QString)));
+	//Menu
+	connect(ui.actionwindowtrans, SIGNAL(triggered()), this, SLOT(windowOpacity()));
+	connect(sliderOpacity, SIGNAL(valueChanged(int)), this, SLOT(sliderOpacityValue(int)));
+	connect(wGroup, SIGNAL(triggered(QAction*)), this, SLOT(windowSwitch(QAction*)));
 }
 
 void Eve::launchRole(QString role, QString scheme,QTime time)
@@ -70,6 +103,7 @@ Eve::~Eve()
 {
 
 }
+
 
 void Eve::pauseRole(QString role)
 {
@@ -128,6 +162,124 @@ void Eve::shutDownTime(QString role, QTime t)
 	if (index < 0)
 		return;
 	m_runtime[index]->scheme->SetShutDownTime(t);
+}
+
+void Eve::EveRoleState(QString name, int s)
+{
+
+	int index = role_index_of_info(name);
+	if (-1 == index)
+	{
+		if (s == PCEveClients::ClientStates::Ready)
+		{
+			RoleInfoWindow iw;
+			iw.role = name;
+			iw.m_roleinfodock = new  QDockWidget(iw.role, this);
+			iw.m_roleinfodock->setFeatures(QDockWidget::DockWidgetMovable | QDockWidget::DockWidgetFloatable);
+			iw.m_roleinfodock->setAllowedAreas(Qt::BottomDockWidgetArea);
+			iw.m_roleinfoui = new OutputInfo(iw.m_roleinfodock);
+			iw.m_roleinfodock->setWidget(iw.m_roleinfoui);
+			this->tabifyDockWidget(dockinfo, iw.m_roleinfodock);
+			m_roleinfodocks.push_back(iw);
+			QIcon icon("pic/window.png");
+			QAction * action = new QAction(icon, name, this);
+			action->setCheckable(true);
+			action->setChecked(true);
+			menuw->addAction(action);
+			wGroup->addAction(action);
+			wActions.push_back(action);
+		}
+	}
+	else
+	{
+		if (s == PCEveClients::ClientStates::NotReady)
+		{
+			QDockWidget *iw = m_roleinfodocks[index].m_roleinfodock;
+			m_roleinfodocks.remove(index);
+			iw->close();
+			delete iw;
+			iw = nullptr;
+
+			for (int i = 0; i < wActions.size(); ++i)
+			{
+				if (wActions[i]->text() == name)
+				{
+					menuw->removeAction(wActions[i]);
+					wGroup->removeAction(wActions[i]);
+					delete wActions[i];
+					wActions[i] = nullptr;
+					wActions.remove(i);
+					break;
+				}
+			}
+		}
+	}
+}
+
+void Eve::DelRole(QString name)
+{
+	int index = role_index_of_info(name);
+	if (-1 != index)
+	{
+		QDockWidget *iw = m_roleinfodocks[index].m_roleinfodock;
+		m_roleinfodocks.remove(index);
+		iw->close();
+		delete iw;
+		iw = nullptr;
+
+		for (int i = 0; i < wActions.size(); ++i)
+		{
+			if (wActions[i]->text() == name)
+			{
+				menuw->removeAction(wActions[i]);
+				delete wActions[i];
+				wActions[i] = nullptr;
+				wActions.remove(i);
+				break;
+			}
+		}
+	}
+}
+
+void Eve::RoleOutputInfo(QString role, QString info,QString color)
+{
+	int index = role_index_of_info(role);
+	m_roleinfodocks[index].m_roleinfoui->StandOut(info, color);
+}
+
+void Eve::windowOpacity()
+{
+	if (sliderOpacity->isHidden())
+	{
+		sliderOpacity->show();
+	}
+	else
+	{
+		sliderOpacity->hide();
+	}
+}
+
+void Eve::sliderOpacityValue(int value)
+{
+	setWindowOpacity(value / 100.0);
+}
+
+void Eve::windowSwitch(QAction *action)
+{
+	QString role = action->text();
+	int index = role_index_of_info(role);
+	bool checked = action->isChecked();
+	if (index != -1)
+	{
+		if (checked)
+		{
+			m_roleinfodocks[index].m_roleinfodock->show();
+		}
+		else
+		{
+			m_roleinfodocks[index].m_roleinfodock->hide();
+		}
+	}
 }
 
 bool Eve::is_role_launched(QString role)

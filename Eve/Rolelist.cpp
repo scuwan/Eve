@@ -1,17 +1,22 @@
 #include "Rolelist.h"
+#include "PCEveClients.h"
 #include <QFile>
 #include <QDebug>
 #include <QTableWidgetItem>
 #include <QDateTime>
 #include <IconFont.h>
 #include <QDateTimeEdit>
+#include <Windows.h>
+#include <SchemeWindow.h>
 
 Rolelist::Rolelist(QWidget *parent)
 	: QWidget(parent)
 {
 	ui.setupUi(this);
-	parse_role_list();
+	//parse_role_list();
 	connect(ui.tableWidget, SIGNAL(cellClicked(int, int)), this, SLOT(cellClicked(int, int)));
+	connect(PCEveClients::Instance(), SIGNAL(EveRoleState(QString, int)), this, SLOT(EveRoleState(QString, int)));
+	connect(PCEveClients::Instance(), SIGNAL(DelRole(QString)), this, SLOT(DelRole(QString)));
 }
 
 Rolelist::~Rolelist()
@@ -52,13 +57,6 @@ void Rolelist::cmdExecStatus(QString role,bool ok, int code)
 	{
 	case 0:	//Exit
 	{
-		//ui.tableWidget->item(row, column - 2)->setTextColor(Qt::green);
-		//ui.tableWidget->item(row, column-1)->setText(QChar(0xf04c) + QString::fromLocal8Bit(" 暂停"));	/* 暂停图标*/
-		//ui.tableWidget->item(row, column-1)->setTextColor(Qt::gray);
-		//ui.tableWidget->item(row, column)->setTextColor(Qt::gray);
-		//ui.tableWidget->item(row, column + 1)->setText(QString::fromLocal8Bit("离线"));
-		//ui.tableWidget->item(row, column + 1)->setTextColor(Qt::gray);
-		//m_roles[row].state = 0;
 		if (ok)
 		{
 			ui.tableWidget->item(row, 2)->setTextColor(Qt::green);
@@ -72,6 +70,7 @@ void Rolelist::cmdExecStatus(QString role,bool ok, int code)
 			ui.tableWidget->item(row, 7)->setTextColor(Qt::red);
 			m_roles[index].state = 0;
 			print_info(QString::fromLocal8Bit("脚本线程退出成功!!!"), role);
+			PCEveClients::Instance()->AlterEveRolesState(m_roles[index].role, PCEveClients::ClientStates::Ready);
 		}
 		else
 		{
@@ -111,12 +110,6 @@ void Rolelist::cmdExecStatus(QString role,bool ok, int code)
 		break;
 	case 2:	//启动
 	{
-		/*ui.tableWidget->item(row, column + 3)->setText(QString::fromLocal8Bit("在线"));
-		ui.tableWidget->item(row, column + 3)->setTextColor(Qt::green);
-		ui.tableWidget->item(row, column)->setTextColor(Qt::gray);
-		ui.tableWidget->item(row, column + 1)->setTextColor(Qt::green);
-		ui.tableWidget->item(row, column + 2)->setTextColor(Qt::green);
-		m_roles[row].state = 1;*/
 		if (ok)
 		{	
 			if (m_roles[index].oldState == 0)
@@ -143,6 +136,7 @@ void Rolelist::cmdExecStatus(QString role,bool ok, int code)
 			m_roles[index].state = 0;	/* 离线状态 */
 			m_roles[index].oldState = -2;
 			print_info(QString::fromLocal8Bit("脚本线程启动失败!!!"), role);
+			PCEveClients::Instance()->AlterEveRolesState(m_roles[index].role, PCEveClients::ClientStates::Ready);
 		}
 	}
 		break;
@@ -211,6 +205,114 @@ void Rolelist::timeChanged(const QTime & time)
 			emit shutDownTime(m_roles[i].role, m_roles[i].shutDown);
 		}
 	}
+}
+
+void Rolelist::EveRoleState(QString name, int s)
+{
+	int index = role_index(name);
+	if (-1 == index)
+	{
+		if (s == PCEveClients::ClientStates::Ready)
+		{
+			Role role;
+			role.role = name;
+			role.scheme = QString::fromLocal8Bit("方案");
+			role.state = 0;
+			m_roles.push_back(role);
+			int count = ui.tableWidget->rowCount();
+			ui.tableWidget->setRowCount(count + 1);
+			QTableWidgetItem *Item = new QTableWidgetItem();
+			Item->setText(role.role);
+			Item->setFlags(Item->flags() ^ Qt::ItemIsEditable);
+			ui.tableWidget->setItem(count, 0, Item);
+			Item = new QTableWidgetItem();
+			Item->setText(role.scheme);
+			ui.tableWidget->setItem(count, 1, Item);
+			QFont font = IconFont::Instance()->GetFont();
+			Item = new QTableWidgetItem();
+			Item->setFont(font);
+			Item->setText(QChar(0xf04b));	/* 启动图标 */
+			Item->setFlags(Item->flags() ^ Qt::ItemIsEditable);
+			Item->setTextColor(Qt::green);
+			Item->setTextAlignment(Qt::AlignCenter);
+			ui.tableWidget->setItem(count, 2, Item);
+			Item = new QTableWidgetItem();
+			Item->setFont(font);
+			Item->setText(QChar(0xf04c));	/* 暂停图标*/
+			Item->setTextColor(Qt::gray);
+			Item->setTextAlignment(Qt::AlignCenter);
+			Item->setFlags(Item->flags() ^ Qt::ItemIsEditable);
+			ui.tableWidget->setItem(count, 3, Item);
+			Item = new QTableWidgetItem();
+			Item->setFont(font);
+			Item->setText(QChar(0xf04d));	/* 停止图标*/
+			Item->setTextColor(Qt::gray);
+			Item->setTextAlignment(Qt::AlignCenter);
+			Item->setFlags(Item->flags() ^ Qt::ItemIsEditable);
+			ui.tableWidget->setItem(count, 4, Item);
+			Item = new QTableWidgetItem();
+			Item->setTextAlignment(Qt::AlignCenter);
+			Item->setText(QString::fromLocal8Bit("离线"));
+			Item->setFlags(Item->flags() ^ Qt::ItemIsEditable);
+			ui.tableWidget->setItem(count, 5, Item);
+			Item = new QTableWidgetItem();
+			Item->setTextAlignment(Qt::AlignCenter);
+			Item->setText(QString::fromLocal8Bit("NA"));
+			Item->setFlags(Item->flags() ^ Qt::ItemIsEditable);
+			ui.tableWidget->setItem(count, 6, Item);
+			Item = new QTableWidgetItem();
+			Item->setFont(font);
+			Item->setTextAlignment(Qt::AlignCenter);
+			Item->setText(QChar(0xf127));	/* un link 图标*/
+			Item->setTextColor(Qt::red);
+			Item->setFlags(Item->flags() ^ Qt::ItemIsEditable);
+			ui.tableWidget->setItem(count, 7, Item);
+			QTimeEdit * time = new QTimeEdit(this);
+			time->setTime(QTime(18, 10, 0, 0));
+			ui.tableWidget->setCellWidget(count, 8, time);
+			connect(time, SIGNAL(timeChanged(const QTime &)), this, SLOT(timeChanged(const QTime &)));
+			m_roles.last().shutDown = QTime(18, 10, 0, 0);
+		}
+	}
+	else
+	{
+		if (s == PCEveClients::ClientStates::NotReady)
+		{
+			QString role = m_roles[index].role;
+			m_roles.remove(index);
+			int count = ui.tableWidget->rowCount();
+			for (int i = 0; i < count; ++i)
+			{
+				if (ui.tableWidget->item(i, 0)->text() == role)
+				{
+					ui.tableWidget->removeRow(i);
+					break;
+				}
+			}
+		}
+	}
+}
+
+void Rolelist::DelRole(QString name)
+{
+	int index = role_index(name);
+	if (index != -1)
+	{
+		QString role = m_roles[index].role;
+		for (int i = 0; i < ui.tableWidget->rowCount(); ++i)
+		{
+			if (ui.tableWidget->item(i, 0)->text() == role)
+			{
+				ui.tableWidget->removeRow(i);
+				break;
+			}
+		}
+	}
+}
+
+void Rolelist::RoleDetectedInfoslot(QString role, QString info,QString color)
+{
+	emit RoleDetectedInfo(role, info,color);
 }
 
 void Rolelist::parse_role_list()
@@ -365,6 +467,14 @@ void Rolelist::cellClicked(int row, int column)
 	{
 		if (m_roles[row].state == 0)	//离线
 		{
+			QString title("EVE - ");
+			title += role;
+			const wchar_t * wtitle = reinterpret_cast<const wchar_t *>(title.utf16());
+			HWND wid = FindWindow(__TEXT("triuiScreen"), wtitle);
+			if (wid == NULL)
+			{
+				return;
+			}
 			ui.tableWidget->item(row, column + 1)->setTextColor(Qt::gray);
 			ui.tableWidget->item(row, column + 2)->setTextColor(Qt::gray);
 			ui.tableWidget->item(row, column)->setTextColor(Qt::yellow);
@@ -373,6 +483,7 @@ void Rolelist::cellClicked(int row, int column)
 			m_roles[row].oldState = 0;
 			m_roles[row].currentCmdcode = 2;
 			print_info(QString::fromLocal8Bit("启动脚本线程..."), role,"#ff0000");
+			PCEveClients::Instance()->AlterEveRolesState(m_roles[row].role, PCEveClients::ClientStates::Active);
 			emit launchRole(m_roles[row].role, m_roles[row].scheme,m_roles[row].shutDown);
 		}
 		break;
@@ -442,6 +553,18 @@ void Rolelist::cellClicked(int row, int column)
 
 		}
 		break;
+	}
+	case 1:
+	{
+		QString role = ui.tableWidget->item(row, 0)->text();
+		if (schemew == nullptr)
+		{
+			schemew = new SchemeWindow(role,this);
+			connect(schemew, SIGNAL(RoleDetectedInfo(QString, QString,QString)), this, SLOT(RoleDetectedInfoslot(QString, QString,QString)));
+			schemew->setWindowFlags(Qt::Dialog);
+			schemew->setWindowModality(Qt::WindowModal);//阻挡父亲窗口内其他控件，除非本dialog关闭
+		}
+		schemew->show();
 	}
 	default:
 		break;

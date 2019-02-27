@@ -32,7 +32,7 @@
    <item row="0" column="0">
     <widget class="QTableWidget" name="tableWidget">
      <attribute name="verticalHeaderVisible">
-      <bool>false</bool>
+      <bool>true</bool>
      </attribute>
      <column>
       <property name="text">

@@ -1,6 +1,6 @@
 /* === Shared === */
 QStackedWidget, QLabel, QPushButton, QRadioButton, QCheckBox, 
-QGroupBox, QStatusBar, QToolButton, QComboBox, QDialog,QMainWindow,QWidget,QFileDialog{
+QGroupBox, QStatusBar, QToolButton, QComboBox, QDialog,QMainWindow,QWidget{
     background-color: #222222;
     color: #BBBBBB;
     /*font-family: "Segoe UI";*/

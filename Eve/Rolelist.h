@@ -2,6 +2,7 @@
 
 #include <QWidget>
 #include "ui_Rolelist.h"
+#include "SchemeWindow.h"
 #include <QDomElement>
 #include <QDomDocument>
 #include <QVector>
@@ -9,7 +10,7 @@
 #include <QStringList>
 #include <QTime>
 
-class Rolelist : public QWidget
+class Rolelist : public QWidget										   
 {
 	Q_OBJECT
 
@@ -25,6 +26,7 @@ signals:
 	void releaseControl(QString role);
 	void cmdInfo(const QString& info,const QString& color);
 	void shutDownTime(QString role, QTime);
+	void RoleDetectedInfo(QString role, QString info,QString color);
 public:
 	void setThreadId(QString role,int id);
 public slots:
@@ -32,6 +34,9 @@ public slots:
 private slots:
 	void cellClicked(int row, int column);
 	void timeChanged(const QTime & time);
+	void EveRoleState(QString name, int);
+	void DelRole(QString);
+	void RoleDetectedInfoslot(QString role, QString info,QString color);
 private:
 	void parse_role_list();
 	int role_index(QString role);
@@ -39,6 +44,7 @@ private:
 	void print_info(const QString& info,QString role=QString::fromLocal8Bit("È«¾Ö"),const QString color="#ffffff");
 private:
 	Ui::Rolelist ui;
+	SchemeWindow *schemew=nullptr;
 	struct Role
 	{
 		QString role;
